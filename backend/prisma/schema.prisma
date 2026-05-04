@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String
+  name     String
+  orders   Order[]
+  fills    fills[]
+}
+
+model Stock {
+  id     String  @id @default(uuid())
+  name   String
+  symbol String
+  orders Order[]
+  fills  fills[]
+}
+
+enum Type {
+  limit
+  market
+}
+
+enum Side {
+  taker
+  maker
+}
+
+enum Status {
+  open
+  filled
+  cancelled
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  market          String
+  asset           Stock    @relation(fields: [market], references: [id])
+  price           Decimal
+  quantity        Decimal
+  type            Type
+  side            Side
+  filled_quantity Decimal
+  status          Status
+  createdAt       DateTime @default(now())
+  fills           fills[]
+}
+
+model fills {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  market          String
+  asset           Stock    @relation(fields: [market], references: [id])
+  price           Decimal
+  quantity        Decimal
+  type            Type
+  side            Side
+  filled_quantity Decimal
+  status          Status
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id])
+  createdAt       DateTime @default(now())
+}
