@@ -51,11 +51,11 @@ model Order {
   user            User     @relation(fields: [userId], references: [id])
   market          String
   asset           Stock    @relation(fields: [market], references: [id])
-  price           Decimal
-  quantity        Decimal
+  price           Int
+  quantity        Int
   type            Type
   side            Side
-  filled_quantity Decimal
+  filled_quantity Int
   status          Status
   createdAt       DateTime @default(now())
   fills           fills[]
@@ -67,11 +67,11 @@ model fills {
   user            User     @relation(fields: [userId], references: [id])
   market          String
   asset           Stock    @relation(fields: [market], references: [id])
-  price           Decimal
-  quantity        Decimal
+  price           Int
+  quantity        Int
   type            Type
   side            Side
-  filled_quantity Decimal
+  filled_quantity Int
   status          Status
   orderId         String
   order           Order    @relation(fields: [orderId], references: [id])
