@@ -1,4 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
+import { OrderSchema } from "../models/order";
+import { check_zod } from "../lib/helpers";
+import { ORDERBOOK } from "../inmemory";
 
 export function Orderhandler(req:Request, res:Response)
 {
@@ -10,5 +13,9 @@ export function Orderhandler(req:Request, res:Response)
     // 5. if leftover qty and LIMIT, rest on book; if MARKET, cancel remainder
     // 6. settle balances on each fill (move locked -> other asset's available)
 
-    
+    const result = OrderSchema.safeParse(req.body);
+    const data = check_zod(result, res);
+    if (!data) {
+        return;
+    }
 }

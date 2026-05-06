@@ -24,38 +24,44 @@ export const BALANCES: Balances = {}; // { userId: { INR: {available, locked}, A
 
 // ***************** Order Book ***************** //
 interface order {
-    quantity: number;
+    price: number;
     time: Date;
+    quantity: number;
     userid: ZodUUID;
 }
 
-type Book = Record<number, { data: order[]; total_quantity: number }>;
+type Book = { data: order[]; total_quantity: number };
+type orderbook = Record<string, {bids: Book, asks: Book}>;
 
-export const ORDERBOOK = {
+
+export const ORDERBOOK:orderbook = {
     AXIS: { bids: {} as Book, asks: {} as Book },
     HDFC: { bids: {} as Book, asks: {} as Book },
     TATA: { bids: {} as Book, asks: {} as Book },
     SOL: { bids: {} as Book, asks: {} as Book },
 };
 
+
 /*
 bids:{
-price:number(eg. 67.67): {
     data: [
             {
                 quantity: 10.5,
                 time: 12:40:10,
-                userid:1
+                userid:1,
+                price: 100
             },
             {
                 quantity: 4.5,
                 time: 12:40:12,
-                userid:2
+                userid:2,
+                price: 101
             },
             {
                 quantity: 5,
                 time: 12:40:30,
-                userid:3
+                userid:3,
+                price: 90
             },
         ],
     total_quantity: 20
