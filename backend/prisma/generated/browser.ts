@@ -23,6 +23,16 @@ export * from './enums.ts';
  */
 export type User = Prisma.UserModel
 /**
+ * Model Wallet
+ * 
+ */
+export type Wallet = Prisma.WalletModel
+/**
+ * Model Transactions
+ * 
+ */
+export type Transactions = Prisma.TransactionsModel
+/**
  * Model Stock
  * 
  */

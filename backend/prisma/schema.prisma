@@ -13,12 +13,43 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(uuid())
-  email    String  @unique
-  password String
-  name     String
-  orders   Order[]
-  fills    fills[]
+  id           String         @id @default(uuid())
+  email        String         @unique
+  password     String
+  name         String
+  orders       Order[]
+  fills        fills[]
+  wallet       Wallet[]
+  transactions Transactions[]
+}
+
+model Wallet {
+  id           String         @id @default(uuid())
+  userid       String
+  user         User           @relation(fields: [userid], references: [id])
+  asset        String
+  balance      Int
+  transactions Transactions[]
+
+  @@unique([userid, asset])
+}
+
+enum Transaction_type {
+  DEPOSIT
+  WITHDRAW
+  PROCESS_ORDER
+  FEE_DEDUCTION
+}
+
+model Transactions {
+  id       String           @id @default(uuid())
+  userid   String
+  user     User             @relation(fields: [userid], references: [id])
+  walletId String
+  wallet   Wallet           @relation(fields: [walletId], references: [id])
+  type     Transaction_type
+  delta    Int
+  createdAt DateTime
 }
 
 model Stock {
@@ -59,6 +90,7 @@ model Order {
   status          Status
   createdAt       DateTime @default(now())
   fills           fills[]
+  closedAt        DateTime @default(now())
 }
 
 model fills {

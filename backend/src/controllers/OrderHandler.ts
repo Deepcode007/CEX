@@ -1,7 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 import { OrderSchema } from "../models/order";
 import { check_zod } from "../lib/helpers";
-import { ORDERBOOK } from "../inmemory";
+import { getBalance } from "../lib/getbalance";
+import { ORDERS, type order } from "../inmemory";
+import type { Orders } from "../types/inmemoryTypes";
+import { getMarketbuy } from "../lib/getMarketBuy";
 
 export function Orderhandler(req:Request, res:Response)
 {
@@ -15,7 +18,66 @@ export function Orderhandler(req:Request, res:Response)
 
     const result = OrderSchema.safeParse(req.body);
     const data = check_zod(result, res);
-    if (!data) {
-        return;
+
+    if (data.side == "buy")
+    {
+        let balance = getBalance("USD", req.id);
+        if (balance < data.price * data.quantity)
+        {
+            return res.status(400).json({
+                success: false,
+                error: "Insufficient balance"
+            });
+        }
+
+
+
+        if (data.type == "market")
+        {
+            // i need to check if the orderbook has enough qty and then
+            // check the price against the user's balance.
+            //
+            // if enough qty available then taker or else maker for the rest amt
+
+            // get sorted orders
+
+            const { best, qty, total_price } = getMarketbuy(data.quantity, data.symbol) as { best: order[]; qty: number; total_price: number; };
+
+            let side;
+            if (qty >= data.quantity) side = "taker";
+            else side = "maker";
+
+            let amt = 0, quantity=0;
+
+            for (let i of best)
+            {
+                if (quantity + i.quantity <= data.quantity)
+                {
+                    quantity += i.quantity;
+                    amt += i.quantity * i.price;
+                }
+                else
+                {
+                    quantity += (i.quantity - (data.quantity - quantity));
+                    amt += i.price * (i.quantity - (data.quantity - quantity));
+                    break;
+                }
+            }
+
+            if (balance <= amt)
+            {
+                return;
+            }
+        }
+
+        let order: Orders = {
+            userId: req.id,
+            type: data.type,
+            market: data.symbol,
+            price: data.price,
+            quantity: data.quantity,
+            side: data.side
+        }
+        ORDERS.push()
     }
 }

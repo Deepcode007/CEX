@@ -1,4 +1,5 @@
 import zod, { ZodUUID } from "zod";
+import type { Balances, Orders } from "./types/inmemoryTypes";
 
 // --- In-memory state ---
 export const USERS: { email: string; name: string; id: string }[] = [];
@@ -9,21 +10,14 @@ export const STOCKS = [
     { id: 4, title: "ETHERIUM", symbol: "ETH" },
 ];
 
-export type AssetBalance = {
-    available: number;
-    locked: number;
-};
 
-export type UserBalances = Record<string, AssetBalance>;
 
-export type Balances = Record<string, UserBalances>;
-
-export const ORDERS = [];
+export const ORDERS:Orders[] = [];
 export const FILLS = [];
 export const BALANCES: Balances = {}; // { userId: { INR: {available, locked}, AXIS: {available, locked}, ... } }
 
 // ***************** Order Book ***************** //
-interface order {
+export interface order {
     price: number;
     time: Date;
     quantity: number;

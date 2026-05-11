@@ -49,6 +49,7 @@ export type OrderMinAggregateOutputType = {
   filled_quantity: number | null
   status: $Enums.Status | null
   createdAt: Date | null
+  closedAt: Date | null
 }
 
 export type OrderMaxAggregateOutputType = {
@@ -62,6 +63,7 @@ export type OrderMaxAggregateOutputType = {
   filled_quantity: number | null
   status: $Enums.Status | null
   createdAt: Date | null
+  closedAt: Date | null
 }
 
 export type OrderCountAggregateOutputType = {
@@ -75,6 +77,7 @@ export type OrderCountAggregateOutputType = {
   filled_quantity: number
   status: number
   createdAt: number
+  closedAt: number
   _all: number
 }
 
@@ -102,6 +105,7 @@ export type OrderMinAggregateInputType = {
   filled_quantity?: true
   status?: true
   createdAt?: true
+  closedAt?: true
 }
 
 export type OrderMaxAggregateInputType = {
@@ -115,6 +119,7 @@ export type OrderMaxAggregateInputType = {
   filled_quantity?: true
   status?: true
   createdAt?: true
+  closedAt?: true
 }
 
 export type OrderCountAggregateInputType = {
@@ -128,6 +133,7 @@ export type OrderCountAggregateInputType = {
   filled_quantity?: true
   status?: true
   createdAt?: true
+  closedAt?: true
   _all?: true
 }
 
@@ -228,6 +234,7 @@ export type OrderGroupByOutputType = {
   filled_quantity: number
   status: $Enums.Status
   createdAt: Date
+  closedAt: Date
   _count: OrderCountAggregateOutputType | null
   _avg: OrderAvgAggregateOutputType | null
   _sum: OrderSumAggregateOutputType | null
@@ -264,6 +271,7 @@ export type OrderWhereInput = {
   filled_quantity?: Prisma.IntFilter<"Order"> | number
   status?: Prisma.EnumStatusFilter<"Order"> | $Enums.Status
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
+  closedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   asset?: Prisma.XOR<Prisma.StockScalarRelationFilter, Prisma.StockWhereInput>
   fills?: Prisma.FillsListRelationFilter
@@ -280,6 +288,7 @@ export type OrderOrderByWithRelationInput = {
   filled_quantity?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  closedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   asset?: Prisma.StockOrderByWithRelationInput
   fills?: Prisma.fillsOrderByRelationAggregateInput
@@ -299,6 +308,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   filled_quantity?: Prisma.IntFilter<"Order"> | number
   status?: Prisma.EnumStatusFilter<"Order"> | $Enums.Status
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
+  closedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   asset?: Prisma.XOR<Prisma.StockScalarRelationFilter, Prisma.StockWhereInput>
   fills?: Prisma.FillsListRelationFilter
@@ -315,6 +325,7 @@ export type OrderOrderByWithAggregationInput = {
   filled_quantity?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  closedAt?: Prisma.SortOrder
   _count?: Prisma.OrderCountOrderByAggregateInput
   _avg?: Prisma.OrderAvgOrderByAggregateInput
   _max?: Prisma.OrderMaxOrderByAggregateInput
@@ -336,6 +347,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   filled_quantity?: Prisma.IntWithAggregatesFilter<"Order"> | number
   status?: Prisma.EnumStatusWithAggregatesFilter<"Order"> | $Enums.Status
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
+  closedAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
 }
 
 export type OrderCreateInput = {
@@ -347,6 +359,7 @@ export type OrderCreateInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
   asset: Prisma.StockCreateNestedOneWithoutOrdersInput
   fills?: Prisma.fillsCreateNestedManyWithoutOrderInput
@@ -363,6 +376,7 @@ export type OrderUncheckedCreateInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
   fills?: Prisma.fillsUncheckedCreateNestedManyWithoutOrderInput
 }
 
@@ -375,6 +389,7 @@ export type OrderUpdateInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   asset?: Prisma.StockUpdateOneRequiredWithoutOrdersNestedInput
   fills?: Prisma.fillsUpdateManyWithoutOrderNestedInput
@@ -391,6 +406,7 @@ export type OrderUncheckedUpdateInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fills?: Prisma.fillsUncheckedUpdateManyWithoutOrderNestedInput
 }
 
@@ -405,6 +421,7 @@ export type OrderCreateManyInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
 }
 
 export type OrderUpdateManyMutationInput = {
@@ -416,6 +433,7 @@ export type OrderUpdateManyMutationInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type OrderUncheckedUpdateManyInput = {
@@ -429,6 +447,7 @@ export type OrderUncheckedUpdateManyInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type OrderListRelationFilter = {
@@ -452,6 +471,7 @@ export type OrderCountOrderByAggregateInput = {
   filled_quantity?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  closedAt?: Prisma.SortOrder
 }
 
 export type OrderAvgOrderByAggregateInput = {
@@ -471,6 +491,7 @@ export type OrderMaxOrderByAggregateInput = {
   filled_quantity?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  closedAt?: Prisma.SortOrder
 }
 
 export type OrderMinOrderByAggregateInput = {
@@ -484,6 +505,7 @@ export type OrderMinOrderByAggregateInput = {
   filled_quantity?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  closedAt?: Prisma.SortOrder
 }
 
 export type OrderSumOrderByAggregateInput = {
@@ -581,14 +603,6 @@ export type OrderUncheckedUpdateManyWithoutAssetNestedInput = {
   deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type EnumTypeFieldUpdateOperationsInput = {
   set?: $Enums.Type
 }
@@ -599,10 +613,6 @@ export type EnumSideFieldUpdateOperationsInput = {
 
 export type EnumStatusFieldUpdateOperationsInput = {
   set?: $Enums.Status
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
 }
 
 export type OrderCreateNestedOneWithoutFillsInput = {
@@ -628,6 +638,7 @@ export type OrderCreateWithoutUserInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
   asset: Prisma.StockCreateNestedOneWithoutOrdersInput
   fills?: Prisma.fillsCreateNestedManyWithoutOrderInput
 }
@@ -642,6 +653,7 @@ export type OrderUncheckedCreateWithoutUserInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
   fills?: Prisma.fillsUncheckedCreateNestedManyWithoutOrderInput
 }
 
@@ -685,6 +697,7 @@ export type OrderScalarWhereInput = {
   filled_quantity?: Prisma.IntFilter<"Order"> | number
   status?: Prisma.EnumStatusFilter<"Order"> | $Enums.Status
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
+  closedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
 }
 
 export type OrderCreateWithoutAssetInput = {
@@ -696,6 +709,7 @@ export type OrderCreateWithoutAssetInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
   fills?: Prisma.fillsCreateNestedManyWithoutOrderInput
 }
@@ -710,6 +724,7 @@ export type OrderUncheckedCreateWithoutAssetInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
   fills?: Prisma.fillsUncheckedCreateNestedManyWithoutOrderInput
 }
 
@@ -748,6 +763,7 @@ export type OrderCreateWithoutFillsInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
   asset: Prisma.StockCreateNestedOneWithoutOrdersInput
 }
@@ -763,6 +779,7 @@ export type OrderUncheckedCreateWithoutFillsInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
 }
 
 export type OrderCreateOrConnectWithoutFillsInput = {
@@ -790,6 +807,7 @@ export type OrderUpdateWithoutFillsInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   asset?: Prisma.StockUpdateOneRequiredWithoutOrdersNestedInput
 }
@@ -805,6 +823,7 @@ export type OrderUncheckedUpdateWithoutFillsInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type OrderCreateManyUserInput = {
@@ -817,6 +836,7 @@ export type OrderCreateManyUserInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
 }
 
 export type OrderUpdateWithoutUserInput = {
@@ -828,6 +848,7 @@ export type OrderUpdateWithoutUserInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   asset?: Prisma.StockUpdateOneRequiredWithoutOrdersNestedInput
   fills?: Prisma.fillsUpdateManyWithoutOrderNestedInput
 }
@@ -842,6 +863,7 @@ export type OrderUncheckedUpdateWithoutUserInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fills?: Prisma.fillsUncheckedUpdateManyWithoutOrderNestedInput
 }
 
@@ -855,6 +877,7 @@ export type OrderUncheckedUpdateManyWithoutUserInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type OrderCreateManyAssetInput = {
@@ -867,6 +890,7 @@ export type OrderCreateManyAssetInput = {
   filled_quantity: number
   status: $Enums.Status
   createdAt?: Date | string
+  closedAt?: Date | string
 }
 
 export type OrderUpdateWithoutAssetInput = {
@@ -878,6 +902,7 @@ export type OrderUpdateWithoutAssetInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   fills?: Prisma.fillsUpdateManyWithoutOrderNestedInput
 }
@@ -892,6 +917,7 @@ export type OrderUncheckedUpdateWithoutAssetInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fills?: Prisma.fillsUncheckedUpdateManyWithoutOrderNestedInput
 }
 
@@ -905,6 +931,7 @@ export type OrderUncheckedUpdateManyWithoutAssetInput = {
   filled_quantity?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -949,6 +976,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   filled_quantity?: boolean
   status?: boolean
   createdAt?: boolean
+  closedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   asset?: boolean | Prisma.StockDefaultArgs<ExtArgs>
   fills?: boolean | Prisma.Order$fillsArgs<ExtArgs>
@@ -966,6 +994,7 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   filled_quantity?: boolean
   status?: boolean
   createdAt?: boolean
+  closedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   asset?: boolean | Prisma.StockDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
@@ -981,6 +1010,7 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   filled_quantity?: boolean
   status?: boolean
   createdAt?: boolean
+  closedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   asset?: boolean | Prisma.StockDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
@@ -996,9 +1026,10 @@ export type OrderSelectScalar = {
   filled_quantity?: boolean
   status?: boolean
   createdAt?: boolean
+  closedAt?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "market" | "price" | "quantity" | "type" | "side" | "filled_quantity" | "status" | "createdAt", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "market" | "price" | "quantity" | "type" | "side" | "filled_quantity" | "status" | "createdAt" | "closedAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   asset?: boolean | Prisma.StockDefaultArgs<ExtArgs>
@@ -1032,6 +1063,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     filled_quantity: number
     status: $Enums.Status
     createdAt: Date
+    closedAt: Date
   }, ExtArgs["result"]["order"]>
   composites: {}
 }
@@ -1468,6 +1500,7 @@ export interface OrderFieldRefs {
   readonly filled_quantity: Prisma.FieldRef<"Order", 'Int'>
   readonly status: Prisma.FieldRef<"Order", 'Status'>
   readonly createdAt: Prisma.FieldRef<"Order", 'DateTime'>
+  readonly closedAt: Prisma.FieldRef<"Order", 'DateTime'>
 }
     
 

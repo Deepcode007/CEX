@@ -9,6 +9,16 @@
 * 🟢 You can import this file directly.
 */
 
+export const Transaction_type = {
+  DEPOSIT: 'DEPOSIT',
+  WITHDRAW: 'WITHDRAW',
+  PROCESS_ORDER: 'PROCESS_ORDER',
+  FEE_DEDUCTION: 'FEE_DEDUCTION'
+} as const
+
+export type Transaction_type = (typeof Transaction_type)[keyof typeof Transaction_type]
+
+
 export const Type = {
   limit: 'limit',
   market: 'market'
