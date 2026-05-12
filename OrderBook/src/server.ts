@@ -1,10 +1,11 @@
 import { client, write_client } from "..";
+import { prisma } from "../../backend";
 import { OrderBook } from "./class/Orderbook"
-import { getWallet } from "./helpers/getWallet";
+import { getAllWallet, getWallet } from "./helpers/getWallet";
 
-import type { Balances, Orders, UserBalances } from "./types/types";
+import type { AssetBalance, Balances, Currency, Orders, UserBalances } from "./types/types";
 
-const STOCKS = [
+export const STOCKS = [
     {
         name: "Solana",
         symbol: "SOL"
@@ -21,10 +22,10 @@ const STOCKS = [
         name: "Tata",
         symbol: "TATA"
     }
-]
+] as const;
 
 
-export let map = new Map<string, OrderBook>;
+export let map = new Map<Currency, OrderBook>;
 export let curr_Users = new Map<string, Orders[]>;
 export let BALANCES: Balances = new Map<string, UserBalances>;
 
@@ -47,19 +48,68 @@ while(1)
     }
 
     let inside_data = JSON.parse(data.element);
+
+    let wallet = BALANCES.get(inside_data.order.userId);
+    if (!wallet) {
+        // from db
+        let data = await getAllWallet(inside_data.order.userId);
+        
+        if (!data || data.length == 0) {
+            write_client.rPush("queue1_responses", JSON.stringify({
+                id: inside_data.id,
+                success: false,
+                error: "No wallet found"
+            }))
+            continue;
+        }
+
+        let obj: UserBalances = {};
+        for (let i of data)
+        {
+            obj[i.asset as Currency] = {
+                available: i.balance,
+                locked: 0
+            } as AssetBalance
+        }
+        BALANCES.set(inside_data.order.userId, obj);
+        wallet = BALANCES.get(inside_data.order.userId);
+    }
+    
+    // wallet has SOL USD but dont have BTC
+    if (wallet && !wallet[inside_data.order.asset as Currency])
+    {
+        // from db
+        let data = await getWallet(inside_data.order.userId, inside_data.order.asset);
+
+        if (!data) {
+            write_client.rPush("queue1_responses", JSON.stringify({
+                id: inside_data.id,
+                success: false,
+                error: `No wallet with ${inside_data.order.asset} found`
+            }))
+            continue;
+        }
+
+        wallet[inside_data.order.asset as Currency] = {
+            available: data.balance,
+            locked: 0
+        };
+    }
+    
     if (inside_data.type == "query")
     {
         write_client.rPush("queue1_responses", JSON.stringify({
             id: inside_data.id,
             success: true,
-            data: // get user wallet from in memory
+            data: wallet![inside_data.order.asset as Currency]
         }))
+        continue;
     }
+    // here the request is order related
     let order:Orders = inside_data.order;
 
-    if (!map.has(order.market))
+    if (!map.get(order.market))
     {
-        // promise, but okay
         write_client.rPush("queue1_responses", JSON.stringify({
             success: false,
             error: "Invalid Market"
@@ -67,18 +117,20 @@ while(1)
         continue;
     }
 
-    if (!curr_Users.has(order.userId))
+    if (!wallet)
     {
-        let wallet = await getWallet(order.userId, order.market)
-        if (!wallet)
-        {
-            console.log("Error, no wallet found!!")
-            continue;
-        }
-        // set in memory the user's wallet
+        console.log("Error, no wallet found!!")
+        continue;
     }
-
-    let orderbook = map.get(order.market) as OrderBook;
-    orderbook.addOrder(order, order.side)
+    else if (!curr_Users.has(order.userId))
+    {
+        curr_Users.set(order.userId, []);
+        curr_Users.get(order.userId)?.push(order);
+    }
+    
+    let orderbook = map.get(order.market)!;
+    
+    orderbook.addOrder(order, order.side);
+    orderbook.processOrder(order, order.side, order.type);
     
 }

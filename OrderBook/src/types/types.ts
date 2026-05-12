@@ -1,6 +1,8 @@
+import type { STOCKS } from "../server";
+
 export interface Orders {
     userId: string,
-    market: string,
+    market: Currency,
     price: number,
     quantity: number,
     type: Type,
@@ -15,7 +17,7 @@ export interface Orders {
 
 export interface Fills {
     userId: string,
-    market: string,
+    market: Currency,
     price: number,
     quantity: number,
     type: Type,
@@ -37,20 +39,22 @@ export interface Pricelevel {
     orders: Orders[];
 }
 
-export type Currency = "USD" | "INR";
+type StockType = typeof STOCKS[number]["symbol"];
+
+export type Currency = StockType;
 export type Type = "limit" | "market";
 export type Side = "bids" | "asks";
 export type Status = "open" | "filled" | "cancelled";
 
 
-export type UserBalances = Record<Currency, AssetBalance>;
+export type UserBalances = Partial<Record<Currency, AssetBalance>>;
 
 export type Balances = Map<string, UserBalances>;
 
 export type redis_dump_type = {
     userId: string,
     orderId: string,
-    asset: string,
+    asset: Currency,
     delta: number,
     reason: "PROCESS_ORDER";
     createdAt: Date,

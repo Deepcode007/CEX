@@ -53,7 +53,7 @@ export async function getBalance(asset: string, uid: string): Promise<any> {
     // Push the request payload to the worker queue
     await client.lPush(requestQueue, JSON.stringify({
         correlationId: correlationId, // Pass this so the worker can send it back!
-        type: "order",
+        type: "query",
         order: {
             userId: uid,
             asset: asset

@@ -2,7 +2,8 @@ import BTree from "sorted-btree";
 import type { Orders, Pricelevel, Side, Type } from "../types/types";
 import { createClientPool, type RedisClientPoolType } from "redis";
 import { env } from "../../../UpdateWorker/src/envParse";
-import { dump } from "../helpers/dumpRedisWorker";
+import { BALANCES } from "../server";
+import { UpdateToRedis } from "../helpers/redisProcessor";
 
 export class OrderBook {
     public asset: string;
@@ -128,12 +129,12 @@ export class OrderBook {
             // balance plus minus
 
             // USD
-            let walletIncomingUSD = // get from inmemory
-            let walletMakerUSD = 
+            let walletIncomingUSD = BALANCES.get(incoming.userId)?.USD!;
+            let walletMakerUSD = BALANCES.get(order.userId)?.USD!;
 
             // other asset
-            let walletIncoming = 
-            let walletMaker = 
+            let walletIncoming = BALANCES.get(incoming.userId)![incoming.market]!
+            let walletMaker = BALANCES.get(order.userId)![incoming.market]!
 
             if (order.side == "bids")
             {
@@ -149,28 +150,7 @@ export class OrderBook {
                 walletIncoming.available += req_qty;
 
                 // DB updates
-                // increase maker's USD
-                let a = dump(this.redis_dumper, order, req_qty * order.price, "USD", "maker");
-                // decrease my USD
-                let b = dump(this.redis_dumper, incoming, -req_qty * order.price, "USD", "taker");
-
-                // decrease maker's asset
-                let c = dump(this.redis_dumper, order, -req_qty, order.market, "maker");
-                // increase my asset
-                let d = dump(this.redis_dumper, incoming, req_qty, order.market, "taker");
-
-                // Redis Updates
-                // increase maker's USD available
-                let a1 = // update inmemory
-                // decrease my USD locked
-                let b1 = 
-                // decrease maker's asset locked
-                let c1 = 
-                // increase my asset availavle
-                let d1 = 
-                
-
-                await Promise.all([a, b, c, d, a1, b1, c1, d1]);
+                UpdateToRedis(this.redis_dumper, incoming, order, req_qty);
                 makerLevel.total_quantity -= req_qty;
             }
             else if (order.side == "asks")
@@ -187,27 +167,7 @@ export class OrderBook {
                 walletIncoming.locked -= req_qty;
 
                 // DB Updates
-                // decrease maker's USD
-                let a = dump(this.redis_dumper, order, -req_qty * order.price, "USD", "maker");
-                // increase my USD
-                let b = dump(this.redis_dumper, incoming, req_qty * order.price, "USD", "taker");
-
-                // increase maker's asset
-                let c = dump(this.redis_dumper, order, req_qty, order.market, "maker");
-                // decrease my asset
-                let d = dump(this.redis_dumper, incoming, -req_qty, order.market, "taker");
-
-                // Redis Updates
-                // decrease maker's USD locked
-                let a1 = 
-                // increase my USD available
-                let b1 = 
-                // increase maker's asset available
-                let c1 = 
-                // decrease my asset locked
-                let d1 = 
-                
-                await Promise.all([a, b, c, d, a1, b1, c1, d1]);
+                UpdateToRedis(this.redis_dumper, incoming, order, req_qty);
                 makerLevel.total_quantity -= req_qty;
             }
 
@@ -216,7 +176,6 @@ export class OrderBook {
                 filled.push(order);
                 order.status = "filled";
             }
-            
         }
 
         // now after for loop, remove the filled orders from the makerlevel
