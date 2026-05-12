@@ -1,20 +1,19 @@
 export interface Orders {
     userId: string,
     market: string,
-    price: number,
+    price: number | null,
     quantity: number,
     type: Type,
     side: Side,
     filled_quantity: number,
     status: Status,
     createdAt: Date,
-    fills: number
 }
 
 export interface Fills {
     userId: string,
     market: string,
-    price: number,
+    price?: number,
     quantity: number,
     type: Type,
     side: Side,

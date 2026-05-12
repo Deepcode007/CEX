@@ -227,7 +227,7 @@ export type OrderGroupByOutputType = {
   id: string
   userId: string
   market: string
-  price: number
+  price: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -264,7 +264,7 @@ export type OrderWhereInput = {
   id?: Prisma.StringFilter<"Order"> | string
   userId?: Prisma.StringFilter<"Order"> | string
   market?: Prisma.StringFilter<"Order"> | string
-  price?: Prisma.IntFilter<"Order"> | number
+  price?: Prisma.IntNullableFilter<"Order"> | number | null
   quantity?: Prisma.IntFilter<"Order"> | number
   type?: Prisma.EnumTypeFilter<"Order"> | $Enums.Type
   side?: Prisma.EnumSideFilter<"Order"> | $Enums.Side
@@ -281,7 +281,7 @@ export type OrderOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   market?: Prisma.SortOrder
-  price?: Prisma.SortOrder
+  price?: Prisma.SortOrderInput | Prisma.SortOrder
   quantity?: Prisma.SortOrder
   type?: Prisma.SortOrder
   side?: Prisma.SortOrder
@@ -301,7 +301,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   userId?: Prisma.StringFilter<"Order"> | string
   market?: Prisma.StringFilter<"Order"> | string
-  price?: Prisma.IntFilter<"Order"> | number
+  price?: Prisma.IntNullableFilter<"Order"> | number | null
   quantity?: Prisma.IntFilter<"Order"> | number
   type?: Prisma.EnumTypeFilter<"Order"> | $Enums.Type
   side?: Prisma.EnumSideFilter<"Order"> | $Enums.Side
@@ -318,7 +318,7 @@ export type OrderOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   market?: Prisma.SortOrder
-  price?: Prisma.SortOrder
+  price?: Prisma.SortOrderInput | Prisma.SortOrder
   quantity?: Prisma.SortOrder
   type?: Prisma.SortOrder
   side?: Prisma.SortOrder
@@ -340,7 +340,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Order"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Order"> | string
   market?: Prisma.StringWithAggregatesFilter<"Order"> | string
-  price?: Prisma.IntWithAggregatesFilter<"Order"> | number
+  price?: Prisma.IntNullableWithAggregatesFilter<"Order"> | number | null
   quantity?: Prisma.IntWithAggregatesFilter<"Order"> | number
   type?: Prisma.EnumTypeWithAggregatesFilter<"Order"> | $Enums.Type
   side?: Prisma.EnumSideWithAggregatesFilter<"Order"> | $Enums.Side
@@ -352,7 +352,7 @@ export type OrderScalarWhereWithAggregatesInput = {
 
 export type OrderCreateInput = {
   id?: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -369,7 +369,7 @@ export type OrderUncheckedCreateInput = {
   id?: string
   userId: string
   market: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -382,7 +382,7 @@ export type OrderUncheckedCreateInput = {
 
 export type OrderUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -399,7 +399,7 @@ export type OrderUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   market?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -414,7 +414,7 @@ export type OrderCreateManyInput = {
   id?: string
   userId: string
   market: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -426,7 +426,7 @@ export type OrderCreateManyInput = {
 
 export type OrderUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -440,7 +440,7 @@ export type OrderUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   market?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -603,6 +603,14 @@ export type OrderUncheckedUpdateManyWithoutAssetNestedInput = {
   deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
 }
 
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type EnumTypeFieldUpdateOperationsInput = {
   set?: $Enums.Type
 }
@@ -631,7 +639,7 @@ export type OrderUpdateOneRequiredWithoutFillsNestedInput = {
 
 export type OrderCreateWithoutUserInput = {
   id?: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -646,7 +654,7 @@ export type OrderCreateWithoutUserInput = {
 export type OrderUncheckedCreateWithoutUserInput = {
   id?: string
   market: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -690,7 +698,7 @@ export type OrderScalarWhereInput = {
   id?: Prisma.StringFilter<"Order"> | string
   userId?: Prisma.StringFilter<"Order"> | string
   market?: Prisma.StringFilter<"Order"> | string
-  price?: Prisma.IntFilter<"Order"> | number
+  price?: Prisma.IntNullableFilter<"Order"> | number | null
   quantity?: Prisma.IntFilter<"Order"> | number
   type?: Prisma.EnumTypeFilter<"Order"> | $Enums.Type
   side?: Prisma.EnumSideFilter<"Order"> | $Enums.Side
@@ -702,7 +710,7 @@ export type OrderScalarWhereInput = {
 
 export type OrderCreateWithoutAssetInput = {
   id?: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -717,7 +725,7 @@ export type OrderCreateWithoutAssetInput = {
 export type OrderUncheckedCreateWithoutAssetInput = {
   id?: string
   userId: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -756,7 +764,7 @@ export type OrderUpdateManyWithWhereWithoutAssetInput = {
 
 export type OrderCreateWithoutFillsInput = {
   id?: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -772,7 +780,7 @@ export type OrderUncheckedCreateWithoutFillsInput = {
   id?: string
   userId: string
   market: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -800,7 +808,7 @@ export type OrderUpdateToOneWithWhereWithoutFillsInput = {
 
 export type OrderUpdateWithoutFillsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -816,7 +824,7 @@ export type OrderUncheckedUpdateWithoutFillsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   market?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -829,7 +837,7 @@ export type OrderUncheckedUpdateWithoutFillsInput = {
 export type OrderCreateManyUserInput = {
   id?: string
   market: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -841,7 +849,7 @@ export type OrderCreateManyUserInput = {
 
 export type OrderUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -856,7 +864,7 @@ export type OrderUpdateWithoutUserInput = {
 export type OrderUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   market?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -870,7 +878,7 @@ export type OrderUncheckedUpdateWithoutUserInput = {
 export type OrderUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   market?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -883,7 +891,7 @@ export type OrderUncheckedUpdateManyWithoutUserInput = {
 export type OrderCreateManyAssetInput = {
   id?: string
   userId: string
-  price: number
+  price?: number | null
   quantity: number
   type: $Enums.Type
   side: $Enums.Side
@@ -895,7 +903,7 @@ export type OrderCreateManyAssetInput = {
 
 export type OrderUpdateWithoutAssetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -910,7 +918,7 @@ export type OrderUpdateWithoutAssetInput = {
 export type OrderUncheckedUpdateWithoutAssetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -924,7 +932,7 @@ export type OrderUncheckedUpdateWithoutAssetInput = {
 export type OrderUncheckedUpdateManyWithoutAssetInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  price?: Prisma.IntFieldUpdateOperationsInput | number
+  price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
   side?: Prisma.EnumSideFieldUpdateOperationsInput | $Enums.Side
@@ -1056,7 +1064,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     id: string
     userId: string
     market: string
-    price: number
+    price: number | null
     quantity: number
     type: $Enums.Type
     side: $Enums.Side

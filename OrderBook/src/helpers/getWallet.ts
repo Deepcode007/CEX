@@ -1,5 +1,6 @@
 import { prisma } from "../../../backend";
 
+// for 1st time when user login 
 export async function getWallet(userId: string, asset: string)
 {
     let wallet = await prisma.wallet.findUnique({

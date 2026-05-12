@@ -1,7 +1,7 @@
-import { client, walletClient } from "..";
+import { client, write_client } from "..";
 import { OrderBook } from "./class/Orderbook"
 import { getWallet } from "./helpers/getWallet";
-import { initUserWallet } from "./helpers/initWalletredis";
+
 import type { Balances, Orders, UserBalances } from "./types/types";
 
 const STOCKS = [
@@ -30,31 +30,41 @@ export let BALANCES: Balances = new Map<string, UserBalances>;
 
 // build orderbooks for each asset/USD market
 STOCKS.forEach(x => {
-    if(x.symbol!="USD")map.set(x.symbol, new OrderBook(x.symbol));
+    if(x.symbol!="USD") map.set(x.symbol, new OrderBook(x.symbol));
 })
 
+// backend -> read 
 
 
 
-async function getData()
+
+while(1)
 {
-    let data = await client.brPop("queue1", 1);
+    let data = await client.brPop("queue1_requests", 1);
     if (!data || !data.element)
     {
-        getData();
-        return;
+        continue;
     }
-    let order:Orders = JSON.parse(data.element);
+
+    let inside_data = JSON.parse(data.element);
+    if (inside_data.type == "query")
+    {
+        write_client.rPush("queue1_responses", JSON.stringify({
+            id: inside_data.id,
+            success: true,
+            data: // get user wallet from in memory
+        }))
+    }
+    let order:Orders = inside_data.order;
 
     if (!map.has(order.market))
     {
         // promise, but okay
-        client.rPush("returnQueue", JSON.stringify({
+        write_client.rPush("queue1_responses", JSON.stringify({
             success: false,
             error: "Invalid Market"
         }));
-        getData();
-        return;
+        continue;
     }
 
     if (!curr_Users.has(order.userId))
@@ -63,12 +73,12 @@ async function getData()
         if (!wallet)
         {
             console.log("Error, no wallet found!!")
-            return;
+            continue;
         }
-        await initUserWallet(order.userId, order.market, wallet.balance)
+        // set in memory the user's wallet
     }
 
     let orderbook = map.get(order.market) as OrderBook;
     orderbook.addOrder(order, order.side)
-    getData();
+    
 }

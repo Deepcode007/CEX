@@ -1,11 +1,8 @@
 import BTree from "sorted-btree";
-import type { Orders, Pricelevel, redis_dump_type, Side, Type } from "../types/types";
-import { createClientPool, type RedisClientPoolType, type RedisFunctions, type RedisModules, type RedisScripts, type RespVersions } from "redis";
+import type { Orders, Pricelevel, Side, Type } from "../types/types";
+import { createClientPool, type RedisClientPoolType } from "redis";
 import { env } from "../../../UpdateWorker/src/envParse";
-import { stream_name  } from "../../../UpdateWorker/src/server";
-import { getAssetBalance } from "../helpers/getWalletRedis";
 import { dump } from "../helpers/dumpRedisWorker";
-import { updateBalance } from "../helpers/updateRedisWallet";
 
 export class OrderBook {
     public asset: string;
@@ -119,7 +116,7 @@ export class OrderBook {
 
     private async executeTrade(incoming: Orders, makerLevel: Pricelevel) {
 
-        let arr = [];
+        let filled = [];
         for(let order of makerLevel.orders)
         {
             if (incoming.filled_quantity == incoming.quantity)
@@ -131,12 +128,12 @@ export class OrderBook {
             // balance plus minus
 
             // USD
-            let walletIncomingUSD = await getAssetBalance(incoming.userId, "USD");
-            let walletMakerUSD = await getAssetBalance(order.userId, "USD");
+            let walletIncomingUSD = // get from inmemory
+            let walletMakerUSD = 
 
             // other asset
-            let walletIncoming = await getAssetBalance(incoming.userId, incoming.market);
-            let walletMaker = await getAssetBalance(order.userId, order.market);
+            let walletIncoming = 
+            let walletMaker = 
 
             if (order.side == "bids")
             {
@@ -164,16 +161,17 @@ export class OrderBook {
 
                 // Redis Updates
                 // increase maker's USD available
-                let a1 = updateBalance(order.userId, "USD", req_qty * order.price, 0);
+                let a1 = // update inmemory
                 // decrease my USD locked
-                let b1 = updateBalance(incoming.userId, "USD", 0, -req_qty * order.price);
+                let b1 = 
                 // decrease maker's asset locked
-                let c1 = updateBalance(order.userId, order.market, 0, -req_qty);
+                let c1 = 
                 // increase my asset availavle
-                let d1 = updateBalance(incoming.userId, order.market, req_qty, 0);
+                let d1 = 
                 
 
                 await Promise.all([a, b, c, d, a1, b1, c1, d1]);
+                makerLevel.total_quantity -= req_qty;
             }
             else if (order.side == "asks")
             {
@@ -201,17 +199,31 @@ export class OrderBook {
 
                 // Redis Updates
                 // decrease maker's USD locked
-                let a1 = updateBalance(order.userId, "USD", 0, -req_qty * order.price);
+                let a1 = 
                 // increase my USD available
-                let b1 = updateBalance(incoming.userId, "USD", req_qty * order.price, 0);
+                let b1 = 
                 // increase maker's asset available
-                let c1 = updateBalance(order.userId, order.market, req_qty, 0);
+                let c1 = 
                 // decrease my asset locked
-                let d1 = updateBalance(incoming.userId, order.market, 0, -req_qty);
+                let d1 = 
                 
                 await Promise.all([a, b, c, d, a1, b1, c1, d1]);
+                makerLevel.total_quantity -= req_qty;
+            }
+
+            if (order.filled_quantity == order.quantity)
+            {
+                filled.push(order);
+                order.status = "filled";
             }
             
+        }
+
+        // now after for loop, remove the filled orders from the makerlevel
+        for (let i = 0; i < filled.length; i++)
+        {
+            // remove the 1st element as it is processed first.
+            makerLevel.orders.shift();
         }
     }
 }

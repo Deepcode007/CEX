@@ -14,9 +14,6 @@ export async function SignupHandler(req: Request, res: Response) {
 
     const result = SignupSchema.safeParse(req.body);
     const data = check_zod(result, res);
-    if (!data) {
-        return;
-    }
 
     // check existing user
     let user = await prisma.user.findUnique({

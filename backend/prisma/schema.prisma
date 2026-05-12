@@ -82,7 +82,7 @@ model Order {
   user            User     @relation(fields: [userId], references: [id])
   market          String
   asset           Stock    @relation(fields: [market], references: [id])
-  price           Int
+  // price           Int?
   quantity        Int
   type            Type
   side            Side

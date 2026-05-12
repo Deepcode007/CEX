@@ -1,14 +1,17 @@
 import zod, { ZodUUID } from "zod";
 import type { Balances, Orders } from "./types/inmemoryTypes";
+import { prisma } from "..";
 
 // --- In-memory state ---
 export const USERS: { email: string; name: string; id: string }[] = [];
-export const STOCKS = [
-    { id: 1, title: "AXIS BANK", symbol: "AXIS" },
-    { id: 2, title: "HDFC BANK", symbol: "HDFC" },
-    { id: 3, title: "SOLANA", symbol: "SOL" },
-    { id: 4, title: "ETHERIUM", symbol: "ETH" },
-];
+export let STOCKS = new Map<string, boolean>
+
+let arr = await prisma.stock.findMany();
+
+for (let i of arr)
+{
+    STOCKS.set(i.symbol, true);
+}
 
 
 
@@ -27,13 +30,6 @@ export interface order {
 type Book = { data: order[]; total_quantity: number };
 type orderbook = Record<string, {bids: Book, asks: Book}>;
 
-
-export const ORDERBOOK:orderbook = {
-    AXIS: { bids: {} as Book, asks: {} as Book },
-    HDFC: { bids: {} as Book, asks: {} as Book },
-    TATA: { bids: {} as Book, asks: {} as Book },
-    SOL: { bids: {} as Book, asks: {} as Book },
-};
 
 
 /*

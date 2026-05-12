@@ -1,4 +1,5 @@
 import { SigninHandler } from "../controllers/LoginHandler";
+import { Orderhandler } from "../controllers/OrderHandler";
 import { SignupHandler } from "../controllers/SignupHandler";
 import { auth } from "../middlewares/auth";
 import { app } from "../server";
@@ -8,9 +9,7 @@ app.post("/signup", SignupHandler);
 app.post("/login", SigninHandler);
 
 // --- Orders ---
-app.post("/order", auth, (req, res) => {
-
-});
+app.post("/order", auth, Orderhandler);
 
 app.delete("/order/:orderId", (req, res) => {
   // 1. find order, check ownership
