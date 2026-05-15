@@ -1,7 +1,8 @@
 import jwt, { type JwtPayload, type Secret } from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
+import { env } from "../config/env";
 
-const secret = process.env.JWT_KEY as Secret;
+const secret = env.JWT_KEY as Secret;
 
 export function auth(req: Request, res: Response, next: NextFunction) {
 	try {

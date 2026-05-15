@@ -3,7 +3,7 @@ import { SigninSchema } from "../models/signin";
 import { check_zod } from "../lib/helpers";
 import { prisma } from "../..";
 import { compare } from "../services/hash";
-import { token } from "../middlewares/token";
+import { create_token } from "../middlewares/token";
 
 export async function SigninHandler(req: Request, res: Response) {
     // 1. find user by username
@@ -15,6 +15,7 @@ export async function SigninHandler(req: Request, res: Response) {
     if (!data) {
         return;
     }
+
 
     // check if exists
 
@@ -35,7 +36,7 @@ export async function SigninHandler(req: Request, res: Response) {
     return res.status(200).json({
         success: true,
         data: {
-            token: token(user.email, user.id)
+            token: create_token(user.email, user.id)
         }
     })
     

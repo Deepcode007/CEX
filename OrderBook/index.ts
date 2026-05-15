@@ -1,6 +1,16 @@
 import { createClient } from 'redis';
 import { env } from './src/envParse';
 
+import { PrismaClient } from "./prisma/generated/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
+});
+
+export const prisma = new PrismaClient({ adapter });
+
+
 export const stream_name = "DB_DUMP_STREAM";
 
 export const responseClient = createClient({

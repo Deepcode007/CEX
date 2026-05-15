@@ -1,4 +1,4 @@
-import { prisma } from "../../../backend";
+import { prisma } from "../..";
 
 // for 1st time when user login 
 export async function getWallet(userId: string, asset: string)

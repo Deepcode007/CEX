@@ -8,6 +8,7 @@ export const envSchema = zod.object({
   REDIS_SEND_QUEUE: zod.string(),
   backend_Id: zod.string(),
   ENGINE_TIMEOUT_MS: zod.coerce.number(),
+  JWT_KEY: zod.string()
 });
 
 const envResult = envSchema.safeParse({ ...process.env });

@@ -3,7 +3,6 @@ import { OrderBook } from "./class/Orderbook"
 import { cancelOrder } from "./helpers/cancelOrder";
 import { getAllWallet, getWallet } from "./helpers/getWallet";
 import { updateWalletDB } from "./helpers/updateWallet";
-import { sendToWorker } from "./redis/SendRedisWorker";
 
 import type { AssetBalance, Balances, Currency, EngineRequest, Orders, UserBalances } from "./types/types";
 
@@ -19,10 +18,6 @@ export const STOCKS = [
     {
         name: "Etherium",
         symbol: "ETH"
-    },
-    {
-        name: "Tata",
-        symbol: "TATA"
     }
 ] as const;
 
@@ -49,7 +44,10 @@ while(1)
         continue;
     }
 
+    console.log("data: ", data)
+
     let inside_data = JSON.parse(data.element) as EngineRequest;
+    console.log("inside data: ", inside_data);
 
     let wallet = BALANCES.get(inside_data.order.userId);
     if (!wallet) {
@@ -78,21 +76,21 @@ while(1)
     }
     
     // wallet has SOL USD but dont have BTC
-    if (wallet && !wallet[inside_data.order.asset as Currency])
+    if (wallet && !wallet[inside_data.order.market as Currency])
     {
         // from db
-        let data = await getWallet(inside_data.order.userId, inside_data.order.asset);
+        let data = await getWallet(inside_data.order.userId, inside_data.order.market);
 
         if (!data) {
             responseClient.rPush(inside_data.responseQueue, JSON.stringify({
                 id: inside_data.id,
                 success: false,
-                error: `No wallet with ${inside_data.order.asset} found`
+                error: `No wallet with ${inside_data.order.market} found`
             }))
             continue;
         }
 
-        wallet[inside_data.order.asset as Currency] = {
+        wallet[inside_data.order.market as Currency] = {
             available: data.balance,
             locked: 0
         };
@@ -100,12 +98,12 @@ while(1)
 
     if (inside_data.type == "deposit" || inside_data.type == "withdraw")
     {
-        wallet![inside_data.order.asset as Currency]!.available += inside_data.order.delta;
-        updateWalletDB(toWorker, inside_data.order.userId, inside_data.order.asset, inside_data.order.delta);
+        wallet![inside_data.order.market as Currency]!.available += inside_data.order.delta;
+        updateWalletDB(toWorker, inside_data.order.userId, inside_data.order.market, inside_data.order.delta);
         responseClient.rPush(inside_data.responseQueue, JSON.stringify({
             id: inside_data.id,
             success: true,
-            data: wallet![inside_data.order.asset as Currency]
+            data: wallet![inside_data.order.market as Currency]
         }));
         continue;
     }
@@ -115,7 +113,7 @@ while(1)
         responseClient.rPush(inside_data.responseQueue, JSON.stringify({
             id: inside_data.id,
             success: true,
-            data: wallet![inside_data.order.asset as Currency]
+            data: wallet![inside_data.order.market as Currency]
         }))
         continue;
     }

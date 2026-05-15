@@ -37,10 +37,12 @@ export async function CreateWallet(req:Request, res:Response)
 
     // check if asset is supported;
 
-    let assets = await prisma.stock.findMany();
-    if (assets.findIndex(x => {
-        x.symbol==data.asset
-    }) == -1)
+    let assets = await prisma.stock.findUnique({
+        where: {
+            symbol: data.asset
+        }
+    });
+    if(!assets)
     {
         return res.status(400).json({
             success: false,

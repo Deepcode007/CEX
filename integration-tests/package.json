@@ -1,0 +1,14 @@
+{
+  "name": "cex-integration-tests",
+  "private": true,
+  "type": "module",
+  "description": "HTTP integration tests against a running backend (../backend: bun run src/server.ts). E2E_BASE_URL defaults to http://127.0.0.1:3000. Smoke: Redis. Full suite: server DATABASE_URL + JWT_KEY; limit orders need OrderBook on Redis.",
+  "scripts": {
+    "test": "bun test",
+    "test:smoke": "bun test test/smoke.integration.test.ts",
+    "test:e2e": "bun test --timeout 60000"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

@@ -23,20 +23,20 @@ app.post("/order", Orderhandler);
 
 app.delete("/order/:orderId", deleteHandler);
 
-app.get("/orders", (req, res) => {
-  // query: ?status=OPEN  (or all)
-  // return current user's orders
-});
+// app.get("/orders", (req, res) => {
+//   // query: ?status=OPEN  (or all)
+//   // return current user's orders
+// });
 
-// --- Market data ---
-app.get("/orderbook/:symbol", (req, res) => {
-  // return aggregated depth — totalQty per price level for bids and asks
-  // (don't expose individual userIds to other users)
-});
+// // --- Market data ---
+// app.get("/orderbook/:symbol", (req, res) => {
+//   // return aggregated depth — totalQty per price level for bids and asks
+//   // (don't expose individual userIds to other users)
+// });
 
-app.get("/fills/:symbol", (req, res) => {
-  // recent trades for this stock — the "tape"
-});
+// app.get("/fills/:symbol", (req, res) => {
+//   // recent trades for this stock — the "tape"
+// });
 
 
 // --- User data ---
@@ -45,6 +45,3 @@ app.get("/balance", getbalance);
 // create new asset wallet
 app.post("/wallet/add", AddBalance);
 app.post("/wallet", CreateWallet);
-
-
-app.listen(3000, () => console.log("CEX running on :3000"));

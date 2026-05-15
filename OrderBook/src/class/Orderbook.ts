@@ -141,19 +141,29 @@ export class OrderBook {
             reason: "CREATE_ORDER" as worker_reason_type,
             userId: incoming.userId,
             id: incoming.id,
-            market: incoming.market,
+            asset: incoming.market,
             price: incoming.price,
             type: incoming.type,
             side: "taker",
             filled_quantity: 0,
+            quantity: incoming.quantity,
             status: "open",
             createdAt: new Date()
         })
         
         let other_tree = this[side == "asks" ? "bids" : "asks"]
 
-        for (const [key, value] of other_tree.entries()) {
+        const contraLevels = [...other_tree.entries()];
+        for (const [key, value] of contraLevels) {
             if (incoming.filled_quantity == incoming.quantity) break;
+
+            if (side == "bids") {
+                if (key > incoming.price) break;
+            } else {
+                if (key < incoming.price) break;
+            }
+
+            if (!other_tree.has(key)) continue;
 
             await this.executeTrade(incoming, value);
         }
@@ -245,11 +255,23 @@ export class OrderBook {
             }
         }
 
+        if (incoming.filled_quantity === incoming.quantity) {
+            incoming.status = "filled";
+        }
+
         // now after for loop, remove the filled orders from the makerlevel
         for (let i = 0; i < filled; i++)
         {
             // remove the 1st element as it is processed first.
             makerLevel.orders.shift();
+        }
+
+        if (makerLevel.orders.length === 0 && makerLevel.total_quantity === 0) {
+            if (incoming.side === "bids") {
+                this.asks.delete(makerLevel.price);
+            } else {
+                this.bids.delete(makerLevel.price);
+            }
         }
     }
 }

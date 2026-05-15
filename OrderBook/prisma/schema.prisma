@@ -100,8 +100,8 @@ model fills {
   id              String   @id @default(uuid())
   userId          String
   user            User     @relation(fields: [userId], references: [id])
-  asset           String
-  assetlink       Stock    @relation(fields: [asset], references: [symbol])
+  market          String
+  asset           Stock    @relation(fields: [market], references: [id])
   price           Int
   quantity        Int
   type            Type
