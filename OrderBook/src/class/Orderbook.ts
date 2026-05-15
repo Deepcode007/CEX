@@ -59,6 +59,7 @@ export class OrderBook {
                     orders: [],
                 };
                 this[saved.side].set(order.price, price);
+                price_bucket = this[side].get(order.price);
             }
             price_bucket!.orders.push(order);
             price_bucket!.total_quantity += order.quantity;
