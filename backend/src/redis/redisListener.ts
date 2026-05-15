@@ -1,4 +1,4 @@
-import { env } from "../server";
+import { env } from "../config/env";
 import { resolveEngineResponse } from "../store/redis_Responses";
 import type { EngineResponse } from "../types/redis_types";
 import { subscriber } from "./redisConnect";

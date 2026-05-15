@@ -1,4 +1,4 @@
-import { env } from "../server";
+import { env } from "../config/env";
 import { waitForEngineResponse } from "../store/redis_Responses";
 import type { EngineCommandType, EngineRequest, EngineResponse } from "../types/redis_types";
 import { publisher } from "./redisConnect";

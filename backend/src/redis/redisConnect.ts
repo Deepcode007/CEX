@@ -1,5 +1,5 @@
 import { createClient } from "redis";
-import { env } from "../server";
+import { env } from "../config/env";
 
 export const publisher = createClient({ url: env?.REDIS_SERVER_URL  }).on("error", (error) => {
   console.error("Redis publisher error", error);
