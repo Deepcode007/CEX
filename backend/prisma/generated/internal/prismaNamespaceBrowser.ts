@@ -119,7 +119,7 @@ export type StockScalarFieldEnum = (typeof StockScalarFieldEnum)[keyof typeof St
 export const OrderScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  market: 'market',
+  asset: 'asset',
   price: 'price',
   quantity: 'quantity',
   type: 'type',

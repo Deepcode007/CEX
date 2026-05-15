@@ -41,7 +41,7 @@ export type OrderSumAggregateOutputType = {
 export type OrderMinAggregateOutputType = {
   id: string | null
   userId: string | null
-  market: string | null
+  asset: string | null
   price: number | null
   quantity: number | null
   type: $Enums.Type | null
@@ -55,7 +55,7 @@ export type OrderMinAggregateOutputType = {
 export type OrderMaxAggregateOutputType = {
   id: string | null
   userId: string | null
-  market: string | null
+  asset: string | null
   price: number | null
   quantity: number | null
   type: $Enums.Type | null
@@ -69,7 +69,7 @@ export type OrderMaxAggregateOutputType = {
 export type OrderCountAggregateOutputType = {
   id: number
   userId: number
-  market: number
+  asset: number
   price: number
   quantity: number
   type: number
@@ -97,7 +97,7 @@ export type OrderSumAggregateInputType = {
 export type OrderMinAggregateInputType = {
   id?: true
   userId?: true
-  market?: true
+  asset?: true
   price?: true
   quantity?: true
   type?: true
@@ -111,7 +111,7 @@ export type OrderMinAggregateInputType = {
 export type OrderMaxAggregateInputType = {
   id?: true
   userId?: true
-  market?: true
+  asset?: true
   price?: true
   quantity?: true
   type?: true
@@ -125,7 +125,7 @@ export type OrderMaxAggregateInputType = {
 export type OrderCountAggregateInputType = {
   id?: true
   userId?: true
-  market?: true
+  asset?: true
   price?: true
   quantity?: true
   type?: true
@@ -226,7 +226,7 @@ export type OrderGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type OrderGroupByOutputType = {
   id: string
   userId: string
-  market: string
+  asset: string
   price: number | null
   quantity: number
   type: $Enums.Type
@@ -263,7 +263,7 @@ export type OrderWhereInput = {
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   id?: Prisma.StringFilter<"Order"> | string
   userId?: Prisma.StringFilter<"Order"> | string
-  market?: Prisma.StringFilter<"Order"> | string
+  asset?: Prisma.StringFilter<"Order"> | string
   price?: Prisma.IntNullableFilter<"Order"> | number | null
   quantity?: Prisma.IntFilter<"Order"> | number
   type?: Prisma.EnumTypeFilter<"Order"> | $Enums.Type
@@ -273,14 +273,14 @@ export type OrderWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   closedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  asset?: Prisma.XOR<Prisma.StockScalarRelationFilter, Prisma.StockWhereInput>
+  assetLink?: Prisma.XOR<Prisma.StockScalarRelationFilter, Prisma.StockWhereInput>
   fills?: Prisma.FillsListRelationFilter
 }
 
 export type OrderOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  market?: Prisma.SortOrder
+  asset?: Prisma.SortOrder
   price?: Prisma.SortOrderInput | Prisma.SortOrder
   quantity?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -290,7 +290,7 @@ export type OrderOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   closedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
-  asset?: Prisma.StockOrderByWithRelationInput
+  assetLink?: Prisma.StockOrderByWithRelationInput
   fills?: Prisma.fillsOrderByRelationAggregateInput
 }
 
@@ -300,7 +300,7 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.OrderWhereInput[]
   NOT?: Prisma.OrderWhereInput | Prisma.OrderWhereInput[]
   userId?: Prisma.StringFilter<"Order"> | string
-  market?: Prisma.StringFilter<"Order"> | string
+  asset?: Prisma.StringFilter<"Order"> | string
   price?: Prisma.IntNullableFilter<"Order"> | number | null
   quantity?: Prisma.IntFilter<"Order"> | number
   type?: Prisma.EnumTypeFilter<"Order"> | $Enums.Type
@@ -310,14 +310,14 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   closedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  asset?: Prisma.XOR<Prisma.StockScalarRelationFilter, Prisma.StockWhereInput>
+  assetLink?: Prisma.XOR<Prisma.StockScalarRelationFilter, Prisma.StockWhereInput>
   fills?: Prisma.FillsListRelationFilter
 }, "id">
 
 export type OrderOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  market?: Prisma.SortOrder
+  asset?: Prisma.SortOrder
   price?: Prisma.SortOrderInput | Prisma.SortOrder
   quantity?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -339,7 +339,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   NOT?: Prisma.OrderScalarWhereWithAggregatesInput | Prisma.OrderScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Order"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Order"> | string
-  market?: Prisma.StringWithAggregatesFilter<"Order"> | string
+  asset?: Prisma.StringWithAggregatesFilter<"Order"> | string
   price?: Prisma.IntNullableWithAggregatesFilter<"Order"> | number | null
   quantity?: Prisma.IntWithAggregatesFilter<"Order"> | number
   type?: Prisma.EnumTypeWithAggregatesFilter<"Order"> | $Enums.Type
@@ -361,14 +361,14 @@ export type OrderCreateInput = {
   createdAt?: Date | string
   closedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
-  asset: Prisma.StockCreateNestedOneWithoutOrdersInput
+  assetLink: Prisma.StockCreateNestedOneWithoutOrdersInput
   fills?: Prisma.fillsCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateInput = {
   id?: string
   userId: string
-  market: string
+  asset: string
   price?: number | null
   quantity: number
   type: $Enums.Type
@@ -391,14 +391,14 @@ export type OrderUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
-  asset?: Prisma.StockUpdateOneRequiredWithoutOrdersNestedInput
+  assetLink?: Prisma.StockUpdateOneRequiredWithoutOrdersNestedInput
   fills?: Prisma.fillsUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  market?: Prisma.StringFieldUpdateOperationsInput | string
+  asset?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
@@ -413,7 +413,7 @@ export type OrderUncheckedUpdateInput = {
 export type OrderCreateManyInput = {
   id?: string
   userId: string
-  market: string
+  asset: string
   price?: number | null
   quantity: number
   type: $Enums.Type
@@ -439,7 +439,7 @@ export type OrderUpdateManyMutationInput = {
 export type OrderUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  market?: Prisma.StringFieldUpdateOperationsInput | string
+  asset?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
@@ -463,7 +463,7 @@ export type OrderOrderByRelationAggregateInput = {
 export type OrderCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  market?: Prisma.SortOrder
+  asset?: Prisma.SortOrder
   price?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -483,7 +483,7 @@ export type OrderAvgOrderByAggregateInput = {
 export type OrderMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  market?: Prisma.SortOrder
+  asset?: Prisma.SortOrder
   price?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -497,7 +497,7 @@ export type OrderMaxOrderByAggregateInput = {
 export type OrderMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  market?: Prisma.SortOrder
+  asset?: Prisma.SortOrder
   price?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -561,45 +561,45 @@ export type OrderUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
 }
 
-export type OrderCreateNestedManyWithoutAssetInput = {
-  create?: Prisma.XOR<Prisma.OrderCreateWithoutAssetInput, Prisma.OrderUncheckedCreateWithoutAssetInput> | Prisma.OrderCreateWithoutAssetInput[] | Prisma.OrderUncheckedCreateWithoutAssetInput[]
-  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAssetInput | Prisma.OrderCreateOrConnectWithoutAssetInput[]
-  createMany?: Prisma.OrderCreateManyAssetInputEnvelope
+export type OrderCreateNestedManyWithoutAssetLinkInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutAssetLinkInput, Prisma.OrderUncheckedCreateWithoutAssetLinkInput> | Prisma.OrderCreateWithoutAssetLinkInput[] | Prisma.OrderUncheckedCreateWithoutAssetLinkInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAssetLinkInput | Prisma.OrderCreateOrConnectWithoutAssetLinkInput[]
+  createMany?: Prisma.OrderCreateManyAssetLinkInputEnvelope
   connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
 }
 
-export type OrderUncheckedCreateNestedManyWithoutAssetInput = {
-  create?: Prisma.XOR<Prisma.OrderCreateWithoutAssetInput, Prisma.OrderUncheckedCreateWithoutAssetInput> | Prisma.OrderCreateWithoutAssetInput[] | Prisma.OrderUncheckedCreateWithoutAssetInput[]
-  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAssetInput | Prisma.OrderCreateOrConnectWithoutAssetInput[]
-  createMany?: Prisma.OrderCreateManyAssetInputEnvelope
+export type OrderUncheckedCreateNestedManyWithoutAssetLinkInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutAssetLinkInput, Prisma.OrderUncheckedCreateWithoutAssetLinkInput> | Prisma.OrderCreateWithoutAssetLinkInput[] | Prisma.OrderUncheckedCreateWithoutAssetLinkInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAssetLinkInput | Prisma.OrderCreateOrConnectWithoutAssetLinkInput[]
+  createMany?: Prisma.OrderCreateManyAssetLinkInputEnvelope
   connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
 }
 
-export type OrderUpdateManyWithoutAssetNestedInput = {
-  create?: Prisma.XOR<Prisma.OrderCreateWithoutAssetInput, Prisma.OrderUncheckedCreateWithoutAssetInput> | Prisma.OrderCreateWithoutAssetInput[] | Prisma.OrderUncheckedCreateWithoutAssetInput[]
-  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAssetInput | Prisma.OrderCreateOrConnectWithoutAssetInput[]
-  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutAssetInput | Prisma.OrderUpsertWithWhereUniqueWithoutAssetInput[]
-  createMany?: Prisma.OrderCreateManyAssetInputEnvelope
+export type OrderUpdateManyWithoutAssetLinkNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutAssetLinkInput, Prisma.OrderUncheckedCreateWithoutAssetLinkInput> | Prisma.OrderCreateWithoutAssetLinkInput[] | Prisma.OrderUncheckedCreateWithoutAssetLinkInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAssetLinkInput | Prisma.OrderCreateOrConnectWithoutAssetLinkInput[]
+  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutAssetLinkInput | Prisma.OrderUpsertWithWhereUniqueWithoutAssetLinkInput[]
+  createMany?: Prisma.OrderCreateManyAssetLinkInputEnvelope
   set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
   disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
   delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
   connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
-  update?: Prisma.OrderUpdateWithWhereUniqueWithoutAssetInput | Prisma.OrderUpdateWithWhereUniqueWithoutAssetInput[]
-  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutAssetInput | Prisma.OrderUpdateManyWithWhereWithoutAssetInput[]
+  update?: Prisma.OrderUpdateWithWhereUniqueWithoutAssetLinkInput | Prisma.OrderUpdateWithWhereUniqueWithoutAssetLinkInput[]
+  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutAssetLinkInput | Prisma.OrderUpdateManyWithWhereWithoutAssetLinkInput[]
   deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
 }
 
-export type OrderUncheckedUpdateManyWithoutAssetNestedInput = {
-  create?: Prisma.XOR<Prisma.OrderCreateWithoutAssetInput, Prisma.OrderUncheckedCreateWithoutAssetInput> | Prisma.OrderCreateWithoutAssetInput[] | Prisma.OrderUncheckedCreateWithoutAssetInput[]
-  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAssetInput | Prisma.OrderCreateOrConnectWithoutAssetInput[]
-  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutAssetInput | Prisma.OrderUpsertWithWhereUniqueWithoutAssetInput[]
-  createMany?: Prisma.OrderCreateManyAssetInputEnvelope
+export type OrderUncheckedUpdateManyWithoutAssetLinkNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutAssetLinkInput, Prisma.OrderUncheckedCreateWithoutAssetLinkInput> | Prisma.OrderCreateWithoutAssetLinkInput[] | Prisma.OrderUncheckedCreateWithoutAssetLinkInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutAssetLinkInput | Prisma.OrderCreateOrConnectWithoutAssetLinkInput[]
+  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutAssetLinkInput | Prisma.OrderUpsertWithWhereUniqueWithoutAssetLinkInput[]
+  createMany?: Prisma.OrderCreateManyAssetLinkInputEnvelope
   set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
   disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
   delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
   connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
-  update?: Prisma.OrderUpdateWithWhereUniqueWithoutAssetInput | Prisma.OrderUpdateWithWhereUniqueWithoutAssetInput[]
-  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutAssetInput | Prisma.OrderUpdateManyWithWhereWithoutAssetInput[]
+  update?: Prisma.OrderUpdateWithWhereUniqueWithoutAssetLinkInput | Prisma.OrderUpdateWithWhereUniqueWithoutAssetLinkInput[]
+  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutAssetLinkInput | Prisma.OrderUpdateManyWithWhereWithoutAssetLinkInput[]
   deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
 }
 
@@ -647,13 +647,13 @@ export type OrderCreateWithoutUserInput = {
   status: $Enums.Status
   createdAt?: Date | string
   closedAt?: Date | string
-  asset: Prisma.StockCreateNestedOneWithoutOrdersInput
+  assetLink: Prisma.StockCreateNestedOneWithoutOrdersInput
   fills?: Prisma.fillsCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutUserInput = {
   id?: string
-  market: string
+  asset: string
   price?: number | null
   quantity: number
   type: $Enums.Type
@@ -697,7 +697,7 @@ export type OrderScalarWhereInput = {
   NOT?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
   id?: Prisma.StringFilter<"Order"> | string
   userId?: Prisma.StringFilter<"Order"> | string
-  market?: Prisma.StringFilter<"Order"> | string
+  asset?: Prisma.StringFilter<"Order"> | string
   price?: Prisma.IntNullableFilter<"Order"> | number | null
   quantity?: Prisma.IntFilter<"Order"> | number
   type?: Prisma.EnumTypeFilter<"Order"> | $Enums.Type
@@ -708,7 +708,7 @@ export type OrderScalarWhereInput = {
   closedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
 }
 
-export type OrderCreateWithoutAssetInput = {
+export type OrderCreateWithoutAssetLinkInput = {
   id?: string
   price?: number | null
   quantity: number
@@ -722,7 +722,7 @@ export type OrderCreateWithoutAssetInput = {
   fills?: Prisma.fillsCreateNestedManyWithoutOrderInput
 }
 
-export type OrderUncheckedCreateWithoutAssetInput = {
+export type OrderUncheckedCreateWithoutAssetLinkInput = {
   id?: string
   userId: string
   price?: number | null
@@ -736,30 +736,30 @@ export type OrderUncheckedCreateWithoutAssetInput = {
   fills?: Prisma.fillsUncheckedCreateNestedManyWithoutOrderInput
 }
 
-export type OrderCreateOrConnectWithoutAssetInput = {
+export type OrderCreateOrConnectWithoutAssetLinkInput = {
   where: Prisma.OrderWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrderCreateWithoutAssetInput, Prisma.OrderUncheckedCreateWithoutAssetInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutAssetLinkInput, Prisma.OrderUncheckedCreateWithoutAssetLinkInput>
 }
 
-export type OrderCreateManyAssetInputEnvelope = {
-  data: Prisma.OrderCreateManyAssetInput | Prisma.OrderCreateManyAssetInput[]
+export type OrderCreateManyAssetLinkInputEnvelope = {
+  data: Prisma.OrderCreateManyAssetLinkInput | Prisma.OrderCreateManyAssetLinkInput[]
   skipDuplicates?: boolean
 }
 
-export type OrderUpsertWithWhereUniqueWithoutAssetInput = {
+export type OrderUpsertWithWhereUniqueWithoutAssetLinkInput = {
   where: Prisma.OrderWhereUniqueInput
-  update: Prisma.XOR<Prisma.OrderUpdateWithoutAssetInput, Prisma.OrderUncheckedUpdateWithoutAssetInput>
-  create: Prisma.XOR<Prisma.OrderCreateWithoutAssetInput, Prisma.OrderUncheckedCreateWithoutAssetInput>
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutAssetLinkInput, Prisma.OrderUncheckedUpdateWithoutAssetLinkInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutAssetLinkInput, Prisma.OrderUncheckedCreateWithoutAssetLinkInput>
 }
 
-export type OrderUpdateWithWhereUniqueWithoutAssetInput = {
+export type OrderUpdateWithWhereUniqueWithoutAssetLinkInput = {
   where: Prisma.OrderWhereUniqueInput
-  data: Prisma.XOR<Prisma.OrderUpdateWithoutAssetInput, Prisma.OrderUncheckedUpdateWithoutAssetInput>
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutAssetLinkInput, Prisma.OrderUncheckedUpdateWithoutAssetLinkInput>
 }
 
-export type OrderUpdateManyWithWhereWithoutAssetInput = {
+export type OrderUpdateManyWithWhereWithoutAssetLinkInput = {
   where: Prisma.OrderScalarWhereInput
-  data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutAssetInput>
+  data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutAssetLinkInput>
 }
 
 export type OrderCreateWithoutFillsInput = {
@@ -773,13 +773,13 @@ export type OrderCreateWithoutFillsInput = {
   createdAt?: Date | string
   closedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutOrdersInput
-  asset: Prisma.StockCreateNestedOneWithoutOrdersInput
+  assetLink: Prisma.StockCreateNestedOneWithoutOrdersInput
 }
 
 export type OrderUncheckedCreateWithoutFillsInput = {
   id?: string
   userId: string
-  market: string
+  asset: string
   price?: number | null
   quantity: number
   type: $Enums.Type
@@ -817,13 +817,13 @@ export type OrderUpdateWithoutFillsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
-  asset?: Prisma.StockUpdateOneRequiredWithoutOrdersNestedInput
+  assetLink?: Prisma.StockUpdateOneRequiredWithoutOrdersNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutFillsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  market?: Prisma.StringFieldUpdateOperationsInput | string
+  asset?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
@@ -836,7 +836,7 @@ export type OrderUncheckedUpdateWithoutFillsInput = {
 
 export type OrderCreateManyUserInput = {
   id?: string
-  market: string
+  asset: string
   price?: number | null
   quantity: number
   type: $Enums.Type
@@ -857,13 +857,13 @@ export type OrderUpdateWithoutUserInput = {
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  asset?: Prisma.StockUpdateOneRequiredWithoutOrdersNestedInput
+  assetLink?: Prisma.StockUpdateOneRequiredWithoutOrdersNestedInput
   fills?: Prisma.fillsUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  market?: Prisma.StringFieldUpdateOperationsInput | string
+  asset?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
@@ -877,7 +877,7 @@ export type OrderUncheckedUpdateWithoutUserInput = {
 
 export type OrderUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  market?: Prisma.StringFieldUpdateOperationsInput | string
+  asset?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumTypeFieldUpdateOperationsInput | $Enums.Type
@@ -888,7 +888,7 @@ export type OrderUncheckedUpdateManyWithoutUserInput = {
   closedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type OrderCreateManyAssetInput = {
+export type OrderCreateManyAssetLinkInput = {
   id?: string
   userId: string
   price?: number | null
@@ -901,7 +901,7 @@ export type OrderCreateManyAssetInput = {
   closedAt?: Date | string
 }
 
-export type OrderUpdateWithoutAssetInput = {
+export type OrderUpdateWithoutAssetLinkInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
@@ -915,7 +915,7 @@ export type OrderUpdateWithoutAssetInput = {
   fills?: Prisma.fillsUpdateManyWithoutOrderNestedInput
 }
 
-export type OrderUncheckedUpdateWithoutAssetInput = {
+export type OrderUncheckedUpdateWithoutAssetLinkInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -929,7 +929,7 @@ export type OrderUncheckedUpdateWithoutAssetInput = {
   fills?: Prisma.fillsUncheckedUpdateManyWithoutOrderNestedInput
 }
 
-export type OrderUncheckedUpdateManyWithoutAssetInput = {
+export type OrderUncheckedUpdateManyWithoutAssetLinkInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -976,7 +976,7 @@ export type OrderCountOutputTypeCountFillsArgs<ExtArgs extends runtime.Types.Ext
 export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  market?: boolean
+  asset?: boolean
   price?: boolean
   quantity?: boolean
   type?: boolean
@@ -986,7 +986,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   createdAt?: boolean
   closedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  asset?: boolean | Prisma.StockDefaultArgs<ExtArgs>
+  assetLink?: boolean | Prisma.StockDefaultArgs<ExtArgs>
   fills?: boolean | Prisma.Order$fillsArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
@@ -994,7 +994,7 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  market?: boolean
+  asset?: boolean
   price?: boolean
   quantity?: boolean
   type?: boolean
@@ -1004,13 +1004,13 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   createdAt?: boolean
   closedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  asset?: boolean | Prisma.StockDefaultArgs<ExtArgs>
+  assetLink?: boolean | Prisma.StockDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
 
 export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  market?: boolean
+  asset?: boolean
   price?: boolean
   quantity?: boolean
   type?: boolean
@@ -1020,13 +1020,13 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   createdAt?: boolean
   closedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  asset?: boolean | Prisma.StockDefaultArgs<ExtArgs>
+  assetLink?: boolean | Prisma.StockDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
 
 export type OrderSelectScalar = {
   id?: boolean
   userId?: boolean
-  market?: boolean
+  asset?: boolean
   price?: boolean
   quantity?: boolean
   type?: boolean
@@ -1037,33 +1037,33 @@ export type OrderSelectScalar = {
   closedAt?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "market" | "price" | "quantity" | "type" | "side" | "filled_quantity" | "status" | "createdAt" | "closedAt", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "asset" | "price" | "quantity" | "type" | "side" | "filled_quantity" | "status" | "createdAt" | "closedAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  asset?: boolean | Prisma.StockDefaultArgs<ExtArgs>
+  assetLink?: boolean | Prisma.StockDefaultArgs<ExtArgs>
   fills?: boolean | Prisma.Order$fillsArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  asset?: boolean | Prisma.StockDefaultArgs<ExtArgs>
+  assetLink?: boolean | Prisma.StockDefaultArgs<ExtArgs>
 }
 export type OrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  asset?: boolean | Prisma.StockDefaultArgs<ExtArgs>
+  assetLink?: boolean | Prisma.StockDefaultArgs<ExtArgs>
 }
 
 export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Order"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
-    asset: Prisma.$StockPayload<ExtArgs>
+    assetLink: Prisma.$StockPayload<ExtArgs>
     fills: Prisma.$fillsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
-    market: string
+    asset: string
     price: number | null
     quantity: number
     type: $Enums.Type
@@ -1467,7 +1467,7 @@ readonly fields: OrderFieldRefs;
 export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  asset<T extends Prisma.StockDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StockDefaultArgs<ExtArgs>>): Prisma.Prisma__StockClient<runtime.Types.Result.GetResult<Prisma.$StockPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  assetLink<T extends Prisma.StockDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StockDefaultArgs<ExtArgs>>): Prisma.Prisma__StockClient<runtime.Types.Result.GetResult<Prisma.$StockPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   fills<T extends Prisma.Order$fillsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$fillsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$fillsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1500,7 +1500,7 @@ export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Ty
 export interface OrderFieldRefs {
   readonly id: Prisma.FieldRef<"Order", 'String'>
   readonly userId: Prisma.FieldRef<"Order", 'String'>
-  readonly market: Prisma.FieldRef<"Order", 'String'>
+  readonly asset: Prisma.FieldRef<"Order", 'String'>
   readonly price: Prisma.FieldRef<"Order", 'Int'>
   readonly quantity: Prisma.FieldRef<"Order", 'Int'>
   readonly type: Prisma.FieldRef<"Order", 'Type'>

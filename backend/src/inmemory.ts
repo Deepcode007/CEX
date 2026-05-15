@@ -14,11 +14,6 @@ for (let i of arr)
 }
 
 
-
-export const ORDERS:Orders[] = [];
-export const FILLS = [];
-export const BALANCES: Balances = {}; // { userId: { INR: {available, locked}, AXIS: {available, locked}, ... } }
-
 // ***************** Order Book ***************** //
 export interface order {
     price: number;
@@ -27,36 +22,35 @@ export interface order {
     userid: ZodUUID;
 }
 
-type Book = { data: order[]; total_quantity: number };
-type orderbook = Record<string, {bids: Book, asks: Book}>;
 
 
 
 /*
 bids:{
-    data: [
-            {
-                quantity: 10.5,
-                time: 12:40:10,
-                userid:1,
-                price: 100
-            },
-            {
-                quantity: 4.5,
-                time: 12:40:12,
-                userid:2,
-                price: 101
-            },
-            {
-                quantity: 5,
-                time: 12:40:30,
-                userid:3,
-                price: 90
-            },
-        ],
-    total_quantity: 20
+    200: {
+        data: [
+                {
+                    quantity: 10.5,
+                    time: 12:40:10,
+                    userid:1,
+                    price: 100
+                },
+                {
+                    quantity: 4.5,
+                    time: 12:40:12,
+                    userid:2,
+                    price: 101
+                },
+                {
+                    quantity: 5,
+                    time: 12:40:30,
+                    userid:3,
+                    price: 90
+                },
+            ],
+        total_quantity: 20
+    }
 }
 
-}
 
 */

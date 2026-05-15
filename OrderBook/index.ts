@@ -1,21 +1,28 @@
 import { createClient } from 'redis';
 import { env } from './src/envParse';
 
+export const stream_name = "DB_DUMP_STREAM";
 
-export const client = createClient({
+export const responseClient = createClient({
     url: env?.REDIS_SERVER_URL
 });
 
-export const write_client = createClient({
+export const readClient = createClient({
+    url: env?.REDIS_SERVER_URL
+});
+
+export const toWorker = createClient({
     url: env?.REDIS_DB_DUMP_URL
 });
 
-client.on('error', (err) => console.error('Redis Client Error', err));
-write_client.on('error', (err) => console.error('Redis DB Dump Client Error', err));
+responseClient.on('error', (err) => console.error('Redis Client Error', err));
+readClient.on('error', (err) => console.error('Redis DB Dump Client Error', err));
+toWorker.on('error', (err) => console.error('Redis DB Dump Global Client Error', err));
 
 
 await Promise.all([
-    client.connect(),
-    write_client.connect()
+    responseClient.connect(),
+    readClient.connect(),
+    toWorker.connect()
 ]);
 

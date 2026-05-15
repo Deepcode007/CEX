@@ -3,9 +3,7 @@ import { env } from "./envParse";
 import { prisma } from "../../backend";
 import type { response } from "./types/response";
 
-
-export const stream_name = "DB_DUMP_STREAM";
-
+const stream_name = "DB_DUMP_STREAM";
 const readStream = createClientPool({ url: env?.REDIS_SERVER_URL })
 await readStream.connect();
 
@@ -41,12 +39,20 @@ while(true)
                 asset: parsed.asset
             }
         });
-        
-        if (parsed.reason == "PROCESS_ORDER")
+
+        if (parsed.reason == "CREATE_ORDER")
+        {
+            let { reason, ...data } = parsed;
+            await prisma.order.create({
+                data: data
+            })
+        }
+        else if (parsed.reason == "PROCESS_ORDER")
         {
             await prisma.$transaction([
                 prisma.transactions.create({
                     data: {
+                        id: parsed.id,
                         userid: parsed.userId,
                         walletId: wallet!.id,
                         type: parsed.reason,
@@ -68,7 +74,7 @@ while(true)
                     data: {
                         userId: parsed.userId,
                         market: parsed.asset,
-                        orderId: parsed.orderId,
+                        orderId: parsed.id,
                         filled_quantity: parsed.filled_quantity,
                         quantity: parsed.quantity,
                         price: parsed.price,
@@ -80,7 +86,7 @@ while(true)
                 }),
                 prisma.order.update({
                     where: {
-                        id: parsed.orderId
+                        id: parsed.id
                     },
                     data: {
                         status: (parsed.filled_quantity === parsed.quantity)?"filled": "open",
@@ -117,6 +123,32 @@ while(true)
                     }
                 })
             ])
+        }
+        else if (parsed.reason == "CANCEL_ORDER")
+        {
+            prisma.order.update({
+                where: {
+                    userId: parsed.userId,
+                    id: parsed.id
+                },
+                data: {
+                    status: "cancelled"
+                }
+            })
+
+            prisma.wallet.update({
+                where: {
+                    userid_asset: {
+                        userid: parsed.userId,
+                        asset: parsed.asset
+                    }
+                },
+                data: {
+                    balance: {
+                        increment: parsed.delta
+                    }
+                }
+            })
         }
 
         lastId = items.id;

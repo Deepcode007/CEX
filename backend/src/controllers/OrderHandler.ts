@@ -1,11 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
 import { OrderSchema } from "../models/order";
 import { check_zod } from "../lib/helpers";
-import { getBalance } from "../lib/getbalance";
 import { STOCKS, type order } from "../inmemory";
 import type { Orders } from "../types/inmemoryTypes";
-import { placeOrder } from "../lib/SendRedisQueue";
 import { prisma } from "../..";
+import { sendToEngine } from "../redis/redisSend";
+import { randomUUID } from "crypto";
 
 export async function Orderhandler(req:Request, res:Response)
 {
@@ -53,27 +53,37 @@ export async function Orderhandler(req:Request, res:Response)
     {
         obj.price = data.price;
     }
-
-    let order = await prisma.order.create({
-        data: obj
+    
+    let response = await sendToEngine("create_order", {
+        userId: req.id,
+        market: data.symbol,
+        price: data.price,
+        quantity: data.quantity,
+        type: data.type,
+        side: data.side == "sell" ? "asks" : "bids",
+        filled_quantity: 0,
+        status: "open",
+        createdAt: new Date(),
+        id: randomUUID(),
     })
 
-    if (!order)
+    if (!response.success)
     {
-        return;
+        return res.status(400).json({
+            success: false,
+            error: response.error
+        })
     }
-    
-    await placeOrder(order)
     
 
     res.status(201).json({
         success: true, 
         data: {
-            orderId: order.id,
-            asset: order.market,
-            quantity: order.quantity,
-            type: order.type,
-            status: order.status
+            orderId: response.id,
+            asset: data.symbol,
+            quantity: data.quantity,
+            type: data.type,
+            status: response.data.status
         }
     })
 }

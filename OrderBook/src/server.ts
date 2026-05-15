@@ -1,9 +1,11 @@
-import { client, write_client } from "..";
-import { prisma } from "../../backend";
+import { readClient, responseClient, toWorker } from "..";
 import { OrderBook } from "./class/Orderbook"
+import { cancelOrder } from "./helpers/cancelOrder";
 import { getAllWallet, getWallet } from "./helpers/getWallet";
+import { updateWalletDB } from "./helpers/updateWallet";
+import { sendToWorker } from "./redis/SendRedisWorker";
 
-import type { AssetBalance, Balances, Currency, Orders, UserBalances } from "./types/types";
+import type { AssetBalance, Balances, Currency, EngineRequest, Orders, UserBalances } from "./types/types";
 
 export const STOCKS = [
     {
@@ -41,13 +43,13 @@ STOCKS.forEach(x => {
 
 while(1)
 {
-    let data = await client.brPop("queue1_requests", 1);
+    let data = await readClient.brPop("queue1_requests", 1);
     if (!data || !data.element)
     {
         continue;
     }
 
-    let inside_data = JSON.parse(data.element);
+    let inside_data = JSON.parse(data.element) as EngineRequest;
 
     let wallet = BALANCES.get(inside_data.order.userId);
     if (!wallet) {
@@ -55,11 +57,11 @@ while(1)
         let data = await getAllWallet(inside_data.order.userId);
         
         if (!data || data.length == 0) {
-            write_client.rPush("queue1_responses", JSON.stringify({
+            responseClient.rPush(inside_data.responseQueue, JSON.stringify({
                 id: inside_data.id,
                 success: false,
                 error: "No wallet found"
-            }))
+             }))
             continue;
         }
 
@@ -82,7 +84,7 @@ while(1)
         let data = await getWallet(inside_data.order.userId, inside_data.order.asset);
 
         if (!data) {
-            write_client.rPush("queue1_responses", JSON.stringify({
+            responseClient.rPush(inside_data.responseQueue, JSON.stringify({
                 id: inside_data.id,
                 success: false,
                 error: `No wallet with ${inside_data.order.asset} found`
@@ -95,27 +97,92 @@ while(1)
             locked: 0
         };
     }
-    
-    if (inside_data.type == "query")
+
+    if (inside_data.type == "deposit" || inside_data.type == "withdraw")
     {
-        write_client.rPush("queue1_responses", JSON.stringify({
+        wallet![inside_data.order.asset as Currency]!.available += inside_data.order.delta;
+        updateWalletDB(toWorker, inside_data.order.userId, inside_data.order.asset, inside_data.order.delta);
+        responseClient.rPush(inside_data.responseQueue, JSON.stringify({
+            id: inside_data.id,
+            success: true,
+            data: wallet![inside_data.order.asset as Currency]
+        }));
+        continue;
+    }
+    
+    if (inside_data.type == "get_user_balance")
+    {
+        responseClient.rPush(inside_data.responseQueue, JSON.stringify({
             id: inside_data.id,
             success: true,
             data: wallet![inside_data.order.asset as Currency]
         }))
         continue;
     }
-    // here the request is order related
-    let order:Orders = inside_data.order;
 
-    if (!map.get(order.market))
+    if (!map.get(inside_data.order.market))
     {
-        write_client.rPush("queue1_responses", JSON.stringify({
+        responseClient.rPush(inside_data.responseQueue, JSON.stringify({
+            id: inside_data.id,
             success: false,
             error: "Invalid Market"
         }));
         continue;
     }
+
+    if (inside_data.type == "cancel_order")
+    {
+        let orders = curr_Users.get(inside_data.order.userId);
+        let order = orders?.find(x => {
+            if (x.id == inside_data.order.orderId) return x;
+        })
+
+        if (!order)
+        {
+            responseClient.rPush(inside_data.responseQueue, JSON.stringify({
+                id: inside_data.id,
+                success: false,
+                error: "Order not found"
+            }));
+            continue;
+        }
+
+        if (order.status == "cancelled" || order.status=="filled")
+        {
+            responseClient.rPush(inside_data.responseQueue, JSON.stringify({
+                id: inside_data.id,
+                success: false,
+                error: `Order already ${order.status}`
+            }));
+            continue;
+        }
+
+        let orderbook = map.get(order.market)!;
+
+        let status = orderbook.cancelOrder(order.id, order.side)
+        if (typeof(status)=='object')
+        {
+            cancelOrder(toWorker, order.userId, order.id, order.market, status.delta);
+            responseClient.rPush(inside_data.responseQueue, JSON.stringify({
+                id: inside_data.id,
+                success: true,
+                data: "Order cancelled"
+            }));
+            continue;
+        }
+        else
+        {
+            responseClient.rPush(inside_data.responseQueue, JSON.stringify({
+                id: inside_data.id,
+                success: false,
+                error: "Some error"
+            }));
+            continue;
+        }
+    }
+    
+    // here the request is order related
+    let order = inside_data.order as Orders;
 
     if (!wallet)
     {
@@ -132,5 +199,10 @@ while(1)
     
     orderbook.addOrder(order, order.side);
     orderbook.processOrder(order, order.side, order.type);
-    
+
+    responseClient.rPush(inside_data.responseQueue, JSON.stringify({
+        id: inside_data.id,
+        success: true,
+        data: orderbook.getDetails(order.id)
+    }))
 }

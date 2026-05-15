@@ -1,3 +1,7 @@
+import { AddBalance } from "../controllers/addBalance";
+import { CreateWallet } from "../controllers/createWallet";
+import { deleteHandler } from "../controllers/deleteOrder";
+import { getbalance } from "../controllers/getbalance";
 import { SigninHandler } from "../controllers/LoginHandler";
 import { Orderhandler } from "../controllers/OrderHandler";
 import { SignupHandler } from "../controllers/SignupHandler";
@@ -8,15 +12,16 @@ app.post("/signup", SignupHandler);
 
 app.post("/login", SigninHandler);
 
-// --- Orders ---
-app.post("/order", auth, Orderhandler);
-
-app.delete("/order/:orderId", (req, res) => {
-  // 1. find order, check ownership
-  // 2. remove from ORDERBOOK price level
-  // 3. unlock remaining reserved balance
-  // 4. mark status = CANCELLED
+app.get("/stocks", (req, res) => {
+    res.json({"STOCKS":"stocks"});
 });
+
+app.use(auth);
+
+// --- Orders ---
+app.post("/order", Orderhandler);
+
+app.delete("/order/:orderId", deleteHandler);
 
 app.get("/orders", (req, res) => {
   // query: ?status=OPEN  (or all)
@@ -33,13 +38,13 @@ app.get("/fills/:symbol", (req, res) => {
   // recent trades for this stock — the "tape"
 });
 
-app.get("/stocks", (req, res) => {
-    res.json({"STOCKS":"stocks"});
-});
 
 // --- User data ---
-app.get("/balance", (req, res) => {
-  // return BALANCES[userId] for the authed user
-});
+app.get("/balance", getbalance);
+
+// create new asset wallet
+app.post("/wallet/add", AddBalance);
+app.post("/wallet", CreateWallet);
+
 
 app.listen(3000, () => console.log("CEX running on :3000"));

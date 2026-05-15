@@ -1,6 +1,8 @@
 import  express from "express";
 import { envSchema } from "./models/env";
 import { createClient } from 'redis';
+import { connectRedis, pingRedis } from "./redis/redisConnect";
+import { listenForEngineResponses } from "./redis/redisListener";
 
 
 const envResult = envSchema.safeParse({...process.env});
@@ -10,24 +12,21 @@ app.use(express.json());
 
 export const env = envResult.data;
 
-export const client = createClient({
-    url: env?.REDIS_SERVER_URL
+await connectRedis();
+void listenForEngineResponses();
+
+app.get("/health", async (_req, res) => {
+  await pingRedis();
+  res.json({ ok: true });
 });
 
-export const read_client = createClient({
-    url: env?.REDIS_SERVER_URL
+
+
+
+const server = app.listen(env?.PORT, () => {
+    console.log(`Backend running on http://localhost:${env?.PORT}`);
+    console.log(`Response queue: ${env?.backend_Id}`);
 });
-
-client.on('error', (err) => console.error('Redis Client Error', err));
-read_client.on('error', (err) => console.error('Redis Client Error', err));
-
-
-Promise.all([
-    client.connect(),
-    read_client.connect()
-]);
-
-const server = app.listen(env?.PORT);
 
 if (!envResult.success || !envResult.data)
 {

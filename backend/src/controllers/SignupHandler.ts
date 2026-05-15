@@ -3,7 +3,7 @@ import { SignupSchema } from "../models/signup";
 import { check_zod } from "../lib/helpers";
 import { prisma } from "../..";
 import { hash } from "../services/hash";
-import { BALANCES, USERS } from "../inmemory";
+import { USERS } from "../inmemory";
 
 export async function SignupHandler(req: Request, res: Response) {
     // const { username, password } = req.body;
@@ -42,13 +42,20 @@ export async function SignupHandler(req: Request, res: Response) {
     })
 
     USERS.push(newUser);
-    BALANCES[newUser.id] = {
-        INR: { available: 0, locked: 0 },
-        USD: { available: 0, locked: 0 }
-    };
+
+    let wallet = await prisma.wallet.create({
+        data: {
+            userid: newUser.id,
+            asset: "USD",
+            balance: 0
+        }
+    });
 
     return res.status(201).json({
         success: true,
-        data: newUser
+        data: {
+            user: newUser,
+            wallet: wallet
+        }
     });
 }

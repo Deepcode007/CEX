@@ -1,9 +1,13 @@
 import BTree from "sorted-btree";
-import type { Orders, Pricelevel, Side, Type } from "../types/types";
+import type { Orders, Pricelevel, Side, Type, worker_reason_type } from "../types/types";
 import { createClientPool, type RedisClientPoolType } from "redis";
 import { env } from "../../../UpdateWorker/src/envParse";
 import { BALANCES } from "../server";
 import { UpdateToRedis } from "../helpers/redisProcessor";
+import { dump } from "../redis/dumpRedisWorker";
+import { sendToWorker } from "../redis/SendRedisWorker";
+import { toWorker } from "../..";
+import { updateWalletDB } from "../helpers/updateWallet";
 
 export class OrderBook {
     public asset: string;
@@ -13,7 +17,8 @@ export class OrderBook {
     private orderMap: Map<string, Orders>;
     private redis_dumper: RedisClientPoolType;
 
-    static async a(redis_dumper:RedisClientPoolType):Promise<void>{
+    static async a(redis_dumper:RedisClientPoolType, asset: string):Promise<void>{
+        redis_dumper.on('error', (err) => console.error(`Redis DB Dump Client Error for ${asset} `, err));
         await redis_dumper.connect();
     }
 
@@ -34,7 +39,7 @@ export class OrderBook {
             url: env?.REDIS_SERVER_URL
         });
         
-        OrderBook.a(this.redis_dumper);
+        OrderBook.a(this.redis_dumper, this.asset);
         
     }
 
@@ -60,7 +65,7 @@ export class OrderBook {
         }
     }
 
-    public cancelOrder(orderId: string, side: Side): boolean {
+    public cancelOrder(orderId: string, side: Side): { status: boolean, delta:number} | boolean {
         let order = this.orderMap.get(orderId);
         if (!order || order.status == "filled" || order.status == "cancelled") {
             return false;
@@ -85,7 +90,31 @@ export class OrderBook {
             this[side].delete(order.price);
         }
 
-        return this.orderMap.delete(orderId);
+        this.orderMap.set(orderId, order);
+        let delta = 0;
+        if (order.side == "asks")
+        {
+            // sell asset
+            let walletIncoming = BALANCES.get(order.userId)![order.market]!
+            walletIncoming.available += walletIncoming.locked;
+            delta = walletIncoming.locked;
+            walletIncoming.locked = 0;
+        }
+        else {
+            // buy asset
+            let walletIncomingUSD = BALANCES.get(order.userId)?.USD!;
+            walletIncomingUSD.available += walletIncomingUSD?.locked;
+            delta = walletIncomingUSD.locked;
+            walletIncomingUSD.locked = 0;
+            
+        }
+
+        return {status: true, delta};
+    }
+
+    public getDetails(orderId: string)
+    {
+        return this.orderMap.get(orderId);
     }
 
     // --- Getters for the Matching Engine ---
@@ -106,6 +135,20 @@ export class OrderBook {
     }
 
     public async processOrder(incoming: Orders, side: Side, type: Type) {
+        // create new order in db
+        sendToWorker(this.redis_dumper, {
+            reason: "CREATE_ORDER" as worker_reason_type,
+            userId: incoming.userId,
+            id: incoming.id,
+            market: incoming.market,
+            price: incoming.price,
+            type: incoming.type,
+            side: "taker",
+            filled_quantity: 0,
+            status: "open",
+            createdAt: new Date()
+        })
+        
         let other_tree = this[side == "asks" ? "bids" : "asks"]
 
         for (const [key, value] of other_tree.entries()) {
@@ -113,15 +156,38 @@ export class OrderBook {
 
             await this.executeTrade(incoming, value);
         }
+
+        if (incoming.status == "open")
+        {
+            if (!this[side].has(incoming.price))
+            {
+                this[side].set(incoming.price, {
+                    price: incoming.price,
+                    total_quantity: 0,
+                    orders: []
+                })
+            }
+
+            let myLevel = this[side].get(incoming.price);
+            myLevel!.total_quantity += incoming.quantity - incoming.filled_quantity;
+            myLevel!.orders.push(incoming);
+        }
+        else
+        {
+            this.orderMap.delete(incoming.id);
+        }
     }
 
     private async executeTrade(incoming: Orders, makerLevel: Pricelevel) {
 
-        let filled = [];
+        // TODO:
+        // what if bids and asks user is the same??
+        let filled = 0;
         for(let order of makerLevel.orders)
         {
             if (incoming.filled_quantity == incoming.quantity)
             {
+                incoming.status = "filled";
                 break;
             }
             let req_qty = Math.min(incoming.quantity - incoming.filled_quantity, order.quantity - order.filled_quantity);
@@ -173,13 +239,13 @@ export class OrderBook {
 
             if (order.filled_quantity == order.quantity)
             {
-                filled.push(order);
+                filled++;
                 order.status = "filled";
             }
         }
 
         // now after for loop, remove the filled orders from the makerlevel
-        for (let i = 0; i < filled.length; i++)
+        for (let i = 0; i < filled; i++)
         {
             // remove the 1st element as it is processed first.
             makerLevel.orders.shift();

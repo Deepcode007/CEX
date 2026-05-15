@@ -4,7 +4,8 @@ export type StreamMessageReason =
   | 'DEPOSIT'
   | 'FEE_DEDUCTION'
   | 'WITHDRAW'
-  | 'PROCESS_ORDER';
+  | 'PROCESS_ORDER'
+  | 'CREATE_ORDER';
 
 export type response = {
     userId: string,
@@ -24,7 +25,7 @@ export type response = {
 } |
 {
     userId: string,
-    orderId: string,
+    id: string,
     asset: string,
     delta: number,
     reason: "PROCESS_ORDER";
@@ -34,4 +35,24 @@ export type response = {
     quantity: number;
     price: number;
     type: "limit" | "market"
+} |
+{
+    userId: string,
+    id: string,
+    asset: string,
+    price: number;
+    quantity: number;
+    type: "limit" | "market";
+    side: "taker" | "maker";
+    filled_quantity: 0,
+    status: "open" | "filled" | "cancelled";
+    createdAt: Date,
+    reason: "CREATE_ORDER";
+} |
+{
+    userId: string,
+    id: string,
+    reason: "CANCEL_ORDER",
+    asset: string,
+    delta: number
 }

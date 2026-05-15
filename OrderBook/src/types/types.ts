@@ -1,4 +1,5 @@
 import type { STOCKS } from "../server";
+import { type UUID } from "crypto";
 
 export interface Orders {
     userId: string,
@@ -10,7 +11,6 @@ export interface Orders {
     filled_quantity: number,
     status: Status,
     createdAt: Date,
-    fills: number
     id: string
 }
 
@@ -53,7 +53,7 @@ export type Balances = Map<string, UserBalances>;
 
 export type redis_dump_type = {
     userId: string,
-    orderId: string,
+    id: string,
     asset: Currency,
     delta: number,
     reason: "PROCESS_ORDER";
@@ -63,4 +63,28 @@ export type redis_dump_type = {
     quantity: number;
     price: number;
     type: "limit" | "market"
+}
+
+export type worker_reason_type =
+    | "PROCESS_ORDER"
+    | "DEPOSIT"
+    | "WITHDRAW"
+    | "CANCEL_ORDER"
+    | "CREATE_ORDER";
+
+
+export type EngineCommandType =
+  | "create_order"
+  | "get_depth"
+  | "get_user_balance"
+  | "get_order"
+  | "cancel_order"
+  | "deposit"
+  | "withdraw";
+
+export type EngineRequest = {
+    id: UUID,
+    responseQueue: string;
+    type: EngineCommandType,
+    order: Record<any, any>
 }

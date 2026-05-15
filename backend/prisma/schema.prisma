@@ -30,6 +30,7 @@ model Wallet {
   asset        String
   balance      Int
   transactions Transactions[]
+  stock        Stock          @relation(fields: [asset], references: [symbol])
 
   @@unique([userid, asset])
 }
@@ -42,22 +43,24 @@ enum Transaction_type {
 }
 
 model Transactions {
-  id       String           @id @default(uuid())
-  userid   String
-  user     User             @relation(fields: [userid], references: [id])
-  walletId String
-  wallet   Wallet           @relation(fields: [walletId], references: [id])
-  type     Transaction_type
-  delta    Int
+  id        String           @id @default(uuid())
+  userid    String
+  user      User             @relation(fields: [userid], references: [id])
+  walletId  String
+  wallet    Wallet           @relation(fields: [walletId], references: [id])
+  type      Transaction_type
+  delta     Int
   createdAt DateTime
 }
 
 model Stock {
   id     String  @id @default(uuid())
   name   String
-  symbol String
+  symbol String  @unique
   orders Order[]
   fills  fills[]
+
+  Wallet Wallet[]
 }
 
 enum Type {
@@ -80,9 +83,9 @@ model Order {
   id              String   @id @default(uuid())
   userId          String
   user            User     @relation(fields: [userId], references: [id])
-  market          String
-  asset           Stock    @relation(fields: [market], references: [id])
-  // price           Int?
+  asset           String
+  assetLink       Stock    @relation(fields: [asset], references: [id])
+  price           Int?
   quantity        Int
   type            Type
   side            Side
