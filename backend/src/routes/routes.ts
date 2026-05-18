@@ -1,7 +1,9 @@
 import { AddBalance } from "../controllers/addBalance";
 import { CreateWallet } from "../controllers/createWallet";
 import { deleteHandler } from "../controllers/deleteOrder";
+import { depthHandler } from "../controllers/depthhandler";
 import { getbalance } from "../controllers/getbalance";
+import { getAllOrderHandler } from "../controllers/getOrdersHandler";
 import { SigninHandler } from "../controllers/LoginHandler";
 import { Orderhandler } from "../controllers/OrderHandler";
 import { SignupHandler } from "../controllers/SignupHandler";
@@ -23,20 +25,17 @@ app.post("/order", Orderhandler);
 
 app.delete("/order/:orderId", deleteHandler);
 
-// app.get("/orders", (req, res) => {
-//   // query: ?status=OPEN  (or all)
-//   // return current user's orders
-// });
+app.get("/orders", getAllOrderHandler);
 
-// // --- Market data ---
-// app.get("/orderbook/:symbol", (req, res) => {
-//   // return aggregated depth — totalQty per price level for bids and asks
-//   // (don't expose individual userIds to other users)
-// });
+// --- Market data ---
+app.get("/orderbook/:symbol", depthHandler);
+  // return aggregated depth — totalQty per price level for bids and asks
+  // (don't expose individual userIds to other users)
 
-// app.get("/fills/:symbol", (req, res) => {
-//   // recent trades for this stock — the "tape"
-// });
+
+app.get("/fills/:symbol", (req, res) => {
+  // recent trades for this stock — the "tape"
+});
 
 
 // --- User data ---

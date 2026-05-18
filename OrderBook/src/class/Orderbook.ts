@@ -119,6 +119,24 @@ export class OrderBook {
     }
 
     // --- Getters for the Matching Engine ---
+    
+    // get depth
+    public getDepth()
+    {
+        let bids: { price: number, total_quantity: number }[] = [];
+        bids = this.bids.keysArray().map((x) => {
+            let total_quantity = this.bids.get(x)!.total_quantity;
+            return { price: x, total_quantity };
+        })
+
+        let asks: { price: number, total_quantity: number }[] = [];
+        asks = this.asks.keysArray().map((x) => {
+            let total_quantity = this.asks.get(x)!.total_quantity;
+            return { price: x, total_quantity };
+        })
+
+        return { bids, asks };
+    }
 
     // lowest price seller
     public getBestBid(): Pricelevel | undefined {

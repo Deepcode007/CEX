@@ -49,6 +49,19 @@ while(1)
     let inside_data = JSON.parse(data.element) as EngineRequest;
     console.log("inside data: ", inside_data);
 
+    if (inside_data.type == "get_depth")
+    {
+        let orderbook = map.get(inside_data.order.asset);
+        let depth = orderbook?.getDepth();
+
+        responseClient.rPush(inside_data.responseQueue, JSON.stringify({
+            id: inside_data.id,
+            success: true,
+            data: depth
+         }))
+        continue;
+    }
+
     let wallet = BALANCES.get(inside_data.order.userId);
     if (!wallet) {
         // from db
