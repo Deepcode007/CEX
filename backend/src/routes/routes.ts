@@ -2,6 +2,7 @@ import { AddBalance } from "../controllers/addBalance";
 import { CreateWallet } from "../controllers/createWallet";
 import { deleteHandler } from "../controllers/deleteOrder";
 import { depthHandler } from "../controllers/depthhandler";
+import { fillsHandler } from "../controllers/fillsHandler";
 import { getbalance } from "../controllers/getbalance";
 import { getAllOrderHandler } from "../controllers/getOrdersHandler";
 import { SigninHandler } from "../controllers/LoginHandler";
@@ -33,9 +34,8 @@ app.get("/orderbook/:symbol", depthHandler);
   // (don't expose individual userIds to other users)
 
 
-app.get("/fills/:symbol", (req, res) => {
+app.get("/fills/:symbol", fillsHandler);
   // recent trades for this stock — the "tape"
-});
 
 
 // --- User data ---
