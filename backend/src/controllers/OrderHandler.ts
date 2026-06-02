@@ -1,14 +1,12 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response } from "express";
 import { OrderSchema } from "../models/order";
 import { check_zod } from "../lib/helpers";
-import { STOCKS, type order } from "../inmemory";
+import { STOCKS } from "../inmemory";
 import type { Orders } from "../types/inmemoryTypes";
-import { prisma } from "../..";
 import { sendToEngine } from "../redis/redisSend";
 import { randomUUID } from "crypto";
 
-export async function Orderhandler(req:Request, res:Response)
-{
+export async function Orderhandler(req: Request, res: Response) {
     // body: { userId, side: "BUY"|"SELL", type: "LIMIT"|"MARKET", symbol, price?, qty }
     // 1. validate input + stock exists
     // 2. check + lock balance (INR for BUY, stock for SELL)
@@ -29,8 +27,7 @@ export async function Orderhandler(req:Request, res:Response)
         })
     }
 
-    if (!STOCKS.has(data.symbol))
-    {
+    if (!STOCKS.has(data.symbol)) {
         return res.status(400).json({
             success: false,
             error: "Invalid Stock/Asset"
@@ -39,7 +36,7 @@ export async function Orderhandler(req:Request, res:Response)
 
     let obj: Orders = {
         userId: req.id,
-        market: data.symbol,
+        asset: data.symbol,
         quantity: data.quantity,
         type: data.type,
         side: "taker",
@@ -49,14 +46,13 @@ export async function Orderhandler(req:Request, res:Response)
         createdAt: new Date()
     }
 
-    if (data.type == "limit")
-    {
+    if (data.type == "limit") {
         obj.price = data.price;
     }
-    
+
     let response = await sendToEngine("create_order", {
         userId: req.id,
-        market: data.symbol,
+        asset: data.symbol,
         price: data.price,
         quantity: data.quantity,
         type: data.type,
@@ -67,21 +63,21 @@ export async function Orderhandler(req:Request, res:Response)
         id: randomUUID(),
     })
 
-    if (!response.success)
-    {
+    if (!response.success) {
         return res.status(400).json({
             success: false,
             error: response.error
         })
     }
-    
+
 
     res.status(201).json({
-        success: true, 
+        success: true,
         data: {
             orderId: response.id,
             asset: data.symbol,
             quantity: data.quantity,
+            filled_quantity: response.data.filled_quantity,
             type: data.type,
             status: response.data.status
         }

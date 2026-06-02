@@ -49,7 +49,6 @@ while (true) {
             await prisma.$transaction([
                 prisma.transactions.create({
                     data: {
-                        id: parsed.id,
                         userid: parsed.userId,
                         walletId: wallet!.id,
                         type: parsed.reason,
@@ -70,7 +69,7 @@ while (true) {
                 prisma.fills.create({
                     data: {
                         userId: parsed.userId,
-                        market: parsed.asset,
+                        asset: parsed.asset,
                         orderId: parsed.id,
                         filled_quantity: parsed.filled_quantity,
                         quantity: parsed.quantity,

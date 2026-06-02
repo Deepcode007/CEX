@@ -1,3 +1,5 @@
+import { HeadersInit } from "bun";
+
 /** Base URL of the running backend (same host/port as `env.PORT` in backend). */
 export function e2eBaseUrl(): string {
   return (process.env.E2E_BASE_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "");

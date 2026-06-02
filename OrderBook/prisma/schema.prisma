@@ -50,7 +50,7 @@ model Transactions {
   wallet    Wallet           @relation(fields: [walletId], references: [id])
   type      Transaction_type
   delta     Int
-  createdAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model Stock {
@@ -100,8 +100,8 @@ model fills {
   id              String   @id @default(uuid())
   userId          String
   user            User     @relation(fields: [userId], references: [id])
-  market          String
-  asset           Stock    @relation(fields: [market], references: [id])
+  asset           String
+  assetlink       Stock    @relation(fields: [asset], references: [symbol])
   price           Int
   quantity        Int
   type            Type

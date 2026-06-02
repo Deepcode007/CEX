@@ -1,5 +1,4 @@
 import zod, { ZodUUID } from "zod";
-import type { Balances, Orders } from "./types/inmemoryTypes";
 import { prisma } from "..";
 
 // --- In-memory state ---
@@ -8,8 +7,7 @@ export let STOCKS = new Map<string, boolean>
 
 let arr = await prisma.stock.findMany();
 
-for (let i of arr)
-{
+for (let i of arr) {
     STOCKS.set(i.symbol, true);
 }
 

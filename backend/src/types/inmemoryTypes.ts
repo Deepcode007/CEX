@@ -1,6 +1,6 @@
 export interface Orders {
     userId: string,
-    market: string,
+    asset: string,
     price: number | null,
     quantity: number,
     type: Type,

@@ -1,13 +1,16 @@
 import BTree from "sorted-btree";
-import type { Orders, Pricelevel, Side, Type, worker_reason_type } from "../types/types";
+import type {
+    Orders,
+    Pricelevel,
+    Side,
+    Type,
+    worker_reason_type,
+} from "../types/types";
 import { createClientPool, type RedisClientPoolType } from "redis";
 import { env } from "../../../UpdateWorker/src/envParse";
 import { BALANCES } from "../server";
 import { UpdateToRedis } from "../helpers/redisProcessor";
-import { dump } from "../redis/dumpRedisWorker";
 import { sendToWorker } from "../redis/SendRedisWorker";
-import { toWorker } from "../..";
-import { updateWalletDB } from "../helpers/updateWallet";
 
 export class OrderBook {
     public asset: string;
@@ -17,8 +20,13 @@ export class OrderBook {
     private orderMap: Map<string, Orders>;
     private redis_dumper: RedisClientPoolType;
 
-    static async a(redis_dumper:RedisClientPoolType, asset: string):Promise<void>{
-        redis_dumper.on('error', (err) => console.error(`Redis DB Dump Client Error for ${asset} `, err));
+    static async a(
+        redis_dumper: RedisClientPoolType,
+        asset: string,
+    ): Promise<void> {
+        redis_dumper.on("error", (err) =>
+            console.error(`Redis DB Dump Client Error for ${asset} `, err),
+        );
         await redis_dumper.connect();
     }
 
@@ -36,11 +44,10 @@ export class OrderBook {
 
         // env of Update Worker
         this.redis_dumper = createClientPool({
-            url: env?.REDIS_SERVER_URL
+            url: env?.REDIS_SERVER_URL,
         });
-        
+
         OrderBook.a(this.redis_dumper, this.asset);
-        
     }
 
     // --- Core Operations ---
@@ -49,6 +56,7 @@ export class OrderBook {
         // get balance of the user and lock it
         let saved = this.orderMap.get(order.id);
         if (!saved) {
+            order.filled = 0;
             this.orderMap.set(order.id, order);
             saved = order;
             let price_bucket = this[side].get(order.price);
@@ -63,10 +71,25 @@ export class OrderBook {
             }
             price_bucket!.orders.push(order);
             price_bucket!.total_quantity += order.quantity;
+
+            let wallet = BALANCES.get(order.userId)!;
+            if (side == "bids") {
+                // buy asset
+                wallet["USD"]!.available -= order.price * order.quantity;
+
+                wallet["USD"]!.locked += order.price * order.quantity;
+            } else {
+                // sell asset
+                wallet[order.asset]!.available -= order.quantity;
+                wallet[order.asset]!.locked += order.quantity;
+            }
         }
     }
 
-    public cancelOrder(orderId: string, side: Side): { status: boolean, delta:number} | boolean {
+    public cancelOrder(
+        orderId: string,
+        side: Side,
+    ): { status: boolean; delta: number } | boolean {
         let order = this.orderMap.get(orderId);
         if (!order || order.status == "filled" || order.status == "cancelled") {
             return false;
@@ -75,14 +98,12 @@ export class OrderBook {
         let bucket = this[side].get(order.price);
         if (!bucket) return false;
 
-        bucket.total_quantity -= (order.quantity - order.filled_quantity);
-        
-        const index = bucket.orders.findIndex(o => o.id === orderId);
+        bucket.total_quantity -= order.quantity - order.filled_quantity;
+
+        const index = bucket.orders.findIndex((o) => o.id === orderId);
         if (index !== -1) {
             bucket.orders.splice(index, 1);
-            
-        }
-        else return false;
+        } else return false;
 
         order.status = "cancelled";
 
@@ -93,47 +114,46 @@ export class OrderBook {
 
         this.orderMap.set(orderId, order);
         let delta = 0;
-        if (order.side == "asks")
-        {
+        if (order.side == "asks") {
             // sell asset
-            let walletIncoming = BALANCES.get(order.userId)![order.market]!
-            walletIncoming.available += walletIncoming.locked;
-            delta = walletIncoming.locked;
-            walletIncoming.locked = 0;
-        }
-        else {
+            let walletIncoming = BALANCES.get(order.userId)![order.asset]!;
+            walletIncoming.available += order.quantity - order.filled!;
+            delta = order.quantity - order.filled!;
+            walletIncoming.locked -= order.quantity - order.filled!;
+        } else {
             // buy asset
             let walletIncomingUSD = BALANCES.get(order.userId)?.USD!;
-            walletIncomingUSD.available += walletIncomingUSD?.locked;
-            delta = walletIncomingUSD.locked;
-            walletIncomingUSD.locked = 0;
-            
+            walletIncomingUSD.available +=
+                order.price * order.quantity - order.filled!;
+            delta = order.price * order.quantity - order.filled!;
+            walletIncomingUSD.locked -=
+                order.price * order.quantity - order.filled!;
         }
 
-        return {status: true, delta};
+        return { status: true, delta };
     }
 
-    public getDetails(orderId: string)
-    {
-        return this.orderMap.get(orderId);
+    public getDetails(orderId: string) {
+        let order = this.orderMap.get(orderId);
+        console.log("DEtails: ", order);
+        return order;
     }
 
     // --- Getters for the Matching Engine ---
-    
+
     // get depth
-    public getDepth()
-    {
-        let bids: { price: number, total_quantity: number }[] = [];
+    public getDepth() {
+        let bids: { price: number; total_quantity: number }[] = [];
         bids = this.bids.keysArray().map((x) => {
             let total_quantity = this.bids.get(x)!.total_quantity;
             return { price: x, total_quantity };
-        })
+        });
 
-        let asks: { price: number, total_quantity: number }[] = [];
+        let asks: { price: number; total_quantity: number }[] = [];
         asks = this.asks.keysArray().map((x) => {
             let total_quantity = this.asks.get(x)!.total_quantity;
             return { price: x, total_quantity };
-        })
+        });
 
         return { bids, asks };
     }
@@ -159,17 +179,17 @@ export class OrderBook {
             reason: "CREATE_ORDER" as worker_reason_type,
             userId: incoming.userId,
             id: incoming.id,
-            asset: incoming.market,
+            asset: incoming.asset,
             price: incoming.price,
             type: incoming.type,
             side: "taker",
             filled_quantity: 0,
             quantity: incoming.quantity,
             status: "open",
-            createdAt: new Date()
-        })
-        
-        let other_tree = this[side == "asks" ? "bids" : "asks"]
+            createdAt: new Date(),
+        });
+
+        let other_tree = this[side == "asks" ? "bids" : "asks"];
 
         const contraLevels = [...other_tree.entries()];
         for (const [key, value] of contraLevels) {
@@ -186,53 +206,79 @@ export class OrderBook {
             await this.executeTrade(incoming, value);
         }
 
-        if (incoming.status == "open")
-        {
-            if (!this[side].has(incoming.price))
-            {
+        if (incoming.status == "open") {
+            if (!this[side].has(incoming.price)) {
                 this[side].set(incoming.price, {
                     price: incoming.price,
                     total_quantity: 0,
-                    orders: []
-                })
+                    orders: [],
+                });
             }
 
             let myLevel = this[side].get(incoming.price);
-            myLevel!.total_quantity += incoming.quantity - incoming.filled_quantity;
+            myLevel!.total_quantity +=
+                incoming.quantity - incoming.filled_quantity;
             myLevel!.orders.push(incoming);
-        }
-        else
-        {
+        } else {
             this.orderMap.delete(incoming.id);
         }
     }
 
     private async executeTrade(incoming: Orders, makerLevel: Pricelevel) {
-
         // TODO:
         // what if bids and asks user is the same??
         let filled = 0;
-        for(let order of makerLevel.orders)
-        {
-            if (incoming.filled_quantity == incoming.quantity)
-            {
+        let walletIncomingUSD = BALANCES.get(incoming.userId)?.USD!;
+        let walletIncoming = BALANCES.get(incoming.userId)![incoming.asset]!;
+
+        for (let order of makerLevel.orders) {
+            if (incoming.filled_quantity == incoming.quantity) {
                 incoming.status = "filled";
+                if (incoming.side === "bids") {
+                    walletIncomingUSD.available += incoming.quantity * incoming.price - incoming.filled!;
+                    walletIncomingUSD.locked -= incoming.quantity * incoming.price - incoming.filled!;
+                }
+                else {
+                    walletIncomingUSD.available += incoming.quantity - incoming.filled!;
+                    walletIncomingUSD.locked -= incoming.quantity - incoming.filled!;
+                }
                 break;
             }
-            let req_qty = Math.min(incoming.quantity - incoming.filled_quantity, order.quantity - order.filled_quantity);
-            
+            let req_qty = Math.min(
+                incoming.quantity - incoming.filled_quantity,
+                order.quantity - order.filled_quantity,
+            );
+
             // balance plus minus
 
             // USD
-            let walletIncomingUSD = BALANCES.get(incoming.userId)?.USD!;
             let walletMakerUSD = BALANCES.get(order.userId)?.USD!;
 
             // other asset
-            let walletIncoming = BALANCES.get(incoming.userId)![incoming.market]!
-            let walletMaker = BALANCES.get(order.userId)![incoming.market]!
+            let walletMaker = BALANCES.get(order.userId)![incoming.asset]!;
 
-            if (order.side == "bids")
-            {
+            if (order.side == "bids") {
+                order.filled_quantity += req_qty;
+                incoming.filled_quantity += req_qty;
+
+                // USD
+                walletMakerUSD.locked -= req_qty * order.price;
+                walletIncomingUSD.available += req_qty * order.price;
+                order.filled! += req_qty * order.price;
+                incoming.filled! += req_qty;
+
+                console.log("wallet maker SOL ", walletMaker);
+
+                // Asset
+                walletMaker.available += req_qty;
+                walletIncoming.locked -= req_qty;
+
+                console.log("wallet maker SOL after update ", walletMaker);
+
+                // DB updates
+                UpdateToRedis(this.redis_dumper, incoming, order, req_qty);
+                makerLevel.total_quantity -= req_qty;
+            } else if (order.side == "asks") {
                 order.filled_quantity += req_qty;
                 incoming.filled_quantity += req_qty;
 
@@ -240,46 +286,35 @@ export class OrderBook {
                 walletMakerUSD.available += req_qty * order.price;
                 walletIncomingUSD.locked -= req_qty * order.price;
 
+                order.filled! += req_qty;
+                incoming.filled! += req_qty * order.price;
+
                 // Asset
                 walletMaker.locked -= req_qty;
                 walletIncoming.available += req_qty;
-
-                // DB updates
-                UpdateToRedis(this.redis_dumper, incoming, order, req_qty);
-                makerLevel.total_quantity -= req_qty;
-            }
-            else if (order.side == "asks")
-            {
-                order.filled_quantity += req_qty;
-                incoming.filled_quantity += req_qty;
-
-                // USD
-                walletMakerUSD.locked -= req_qty * order.price;
-                walletIncomingUSD.available += req_qty * order.price;
-
-                // Asset
-                walletMaker.available += req_qty;
-                walletIncoming.locked -= req_qty;
 
                 // DB Updates
                 UpdateToRedis(this.redis_dumper, incoming, order, req_qty);
                 makerLevel.total_quantity -= req_qty;
             }
 
-            if (order.filled_quantity == order.quantity)
-            {
+            if (order.filled_quantity == order.quantity) {
                 filled++;
                 order.status = "filled";
+                if (order.side === "bids") {
+                    walletMakerUSD.available +=
+                        order.quantity * order.price - order.filled!;
+                    walletMakerUSD.locked -=
+                        order.quantity * order.price - order.filled!;
+                } else {
+                    walletMaker.available += order.quantity - order.filled!;
+                    walletMaker.locked -= order.quantity - order.filled!;
+                }
             }
         }
 
-        if (incoming.filled_quantity === incoming.quantity) {
-            incoming.status = "filled";
-        }
-
         // now after for loop, remove the filled orders from the makerlevel
-        for (let i = 0; i < filled; i++)
-        {
+        for (let i = 0; i < filled; i++) {
             // remove the 1st element as it is processed first.
             makerLevel.orders.shift();
         }

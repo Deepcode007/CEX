@@ -283,7 +283,7 @@ export type TransactionsCreateInput = {
   id?: string
   type: $Enums.Transaction_type
   delta: number
-  createdAt: Date | string
+  createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutTransactionsInput
   wallet: Prisma.WalletCreateNestedOneWithoutTransactionsInput
 }
@@ -294,7 +294,7 @@ export type TransactionsUncheckedCreateInput = {
   walletId: string
   type: $Enums.Transaction_type
   delta: number
-  createdAt: Date | string
+  createdAt?: Date | string
 }
 
 export type TransactionsUpdateInput = {
@@ -321,7 +321,7 @@ export type TransactionsCreateManyInput = {
   walletId: string
   type: $Enums.Transaction_type
   delta: number
-  createdAt: Date | string
+  createdAt?: Date | string
 }
 
 export type TransactionsUpdateManyMutationInput = {
@@ -481,7 +481,7 @@ export type TransactionsCreateWithoutUserInput = {
   id?: string
   type: $Enums.Transaction_type
   delta: number
-  createdAt: Date | string
+  createdAt?: Date | string
   wallet: Prisma.WalletCreateNestedOneWithoutTransactionsInput
 }
 
@@ -490,7 +490,7 @@ export type TransactionsUncheckedCreateWithoutUserInput = {
   walletId: string
   type: $Enums.Transaction_type
   delta: number
-  createdAt: Date | string
+  createdAt?: Date | string
 }
 
 export type TransactionsCreateOrConnectWithoutUserInput = {
@@ -535,7 +535,7 @@ export type TransactionsCreateWithoutWalletInput = {
   id?: string
   type: $Enums.Transaction_type
   delta: number
-  createdAt: Date | string
+  createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutTransactionsInput
 }
 
@@ -544,7 +544,7 @@ export type TransactionsUncheckedCreateWithoutWalletInput = {
   userid: string
   type: $Enums.Transaction_type
   delta: number
-  createdAt: Date | string
+  createdAt?: Date | string
 }
 
 export type TransactionsCreateOrConnectWithoutWalletInput = {
@@ -578,7 +578,7 @@ export type TransactionsCreateManyUserInput = {
   walletId: string
   type: $Enums.Transaction_type
   delta: number
-  createdAt: Date | string
+  createdAt?: Date | string
 }
 
 export type TransactionsUpdateWithoutUserInput = {
@@ -610,7 +610,7 @@ export type TransactionsCreateManyWalletInput = {
   userid: string
   type: $Enums.Transaction_type
   delta: number
-  createdAt: Date | string
+  createdAt?: Date | string
 }
 
 export type TransactionsUpdateWithoutWalletInput = {

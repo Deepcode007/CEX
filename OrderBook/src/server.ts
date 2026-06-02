@@ -28,7 +28,7 @@ export let BALANCES: Balances = new Map<string, UserBalances>;
 
 // build orderbooks for each asset/USD market
 STOCKS.forEach(x => {
-    if(x.symbol!="USD") map.set(x.symbol, new OrderBook(x.symbol));
+    if (x.symbol != "USD") map.set(x.symbol, new OrderBook(x.symbol));
 })
 
 // backend -> read 
@@ -36,11 +36,9 @@ STOCKS.forEach(x => {
 
 
 
-while(1)
-{
+while (1) {
     let data = await readClient.brPop("queue1_requests", 1);
-    if (!data || !data.element)
-    {
+    if (!data || !data.element) {
         continue;
     }
 
@@ -49,8 +47,7 @@ while(1)
     let inside_data = JSON.parse(data.element) as EngineRequest;
     console.log("inside data: ", inside_data);
 
-    if (inside_data.type == "get_depth")
-    {
+    if (inside_data.type == "get_depth") {
         let orderbook = map.get(inside_data.order.asset);
         let depth = orderbook?.getDepth();
 
@@ -58,7 +55,7 @@ while(1)
             id: inside_data.id,
             success: true,
             data: depth
-         }))
+        }))
         continue;
     }
 
@@ -66,19 +63,18 @@ while(1)
     if (!wallet) {
         // from db
         let data = await getAllWallet(inside_data.order.userId);
-        
+
         if (!data || data.length == 0) {
             responseClient.rPush(inside_data.responseQueue, JSON.stringify({
                 id: inside_data.id,
                 success: false,
                 error: "No wallet found"
-             }))
+            }))
             continue;
         }
 
         let obj: UserBalances = {};
-        for (let i of data)
-        {
+        for (let i of data) {
             obj[i.asset as Currency] = {
                 available: i.balance,
                 locked: 0
@@ -87,52 +83,48 @@ while(1)
         BALANCES.set(inside_data.order.userId, obj);
         wallet = BALANCES.get(inside_data.order.userId);
     }
-    
+
     // wallet has SOL USD but dont have BTC
-    if (wallet && !wallet[inside_data.order.market as Currency])
-    {
+    if (wallet && !wallet[inside_data.order.asset as Currency]) {
         // from db
-        let data = await getWallet(inside_data.order.userId, inside_data.order.market);
+        let data = await getWallet(inside_data.order.userId, inside_data.order.asset);
 
         if (!data) {
             responseClient.rPush(inside_data.responseQueue, JSON.stringify({
                 id: inside_data.id,
                 success: false,
-                error: `No wallet with ${inside_data.order.market} found`
+                error: `No wallet with ${inside_data.order.asset} found`
             }))
             continue;
         }
 
-        wallet[inside_data.order.market as Currency] = {
+        wallet[inside_data.order.asset as Currency] = {
             available: data.balance,
             locked: 0
         };
     }
 
-    if (inside_data.type == "deposit" || inside_data.type == "withdraw")
-    {
-        wallet![inside_data.order.market as Currency]!.available += inside_data.order.delta;
-        updateWalletDB(toWorker, inside_data.order.userId, inside_data.order.market, inside_data.order.delta);
+    if (inside_data.type == "deposit" || inside_data.type == "withdraw") {
+        wallet![inside_data.order.asset as Currency]!.available += inside_data.order.delta;
+        updateWalletDB(toWorker, inside_data.order.userId, inside_data.order.asset, inside_data.order.delta);
         responseClient.rPush(inside_data.responseQueue, JSON.stringify({
             id: inside_data.id,
             success: true,
-            data: wallet![inside_data.order.market as Currency]
+            data: wallet![inside_data.order.asset as Currency]
         }));
         continue;
     }
-    
-    if (inside_data.type == "get_user_balance")
-    {
+
+    if (inside_data.type == "get_user_balance") {
         responseClient.rPush(inside_data.responseQueue, JSON.stringify({
             id: inside_data.id,
             success: true,
-            data: wallet![inside_data.order.market as Currency]
+            data: wallet![inside_data.order.asset as Currency]
         }))
         continue;
     }
 
-    if (!map.get(inside_data.order.market))
-    {
+    if (!map.get(inside_data.order.asset)) {
         responseClient.rPush(inside_data.responseQueue, JSON.stringify({
             id: inside_data.id,
             success: false,
@@ -141,15 +133,13 @@ while(1)
         continue;
     }
 
-    if (inside_data.type == "cancel_order")
-    {
+    if (inside_data.type == "cancel_order") {
         let orders = curr_Users.get(inside_data.order.userId);
         let order = orders?.find(x => {
             if (x.id == inside_data.order.orderId) return x;
         })
 
-        if (!order)
-        {
+        if (!order) {
             responseClient.rPush(inside_data.responseQueue, JSON.stringify({
                 id: inside_data.id,
                 success: false,
@@ -158,8 +148,7 @@ while(1)
             continue;
         }
 
-        if (order.status == "cancelled" || order.status=="filled")
-        {
+        if (order.status == "cancelled" || order.status == "filled") {
             responseClient.rPush(inside_data.responseQueue, JSON.stringify({
                 id: inside_data.id,
                 success: false,
@@ -168,12 +157,11 @@ while(1)
             continue;
         }
 
-        let orderbook = map.get(order.market)!;
+        let orderbook = map.get(order.asset)!;
 
         let status = orderbook.cancelOrder(order.id, order.side)
-        if (typeof(status)=='object')
-        {
-            cancelOrder(toWorker, order.userId, order.id, order.market, status.delta);
+        if (typeof (status) == 'object') {
+            cancelOrder(toWorker, order.userId, order.id, order.asset, status.delta);
             responseClient.rPush(inside_data.responseQueue, JSON.stringify({
                 id: inside_data.id,
                 success: true,
@@ -181,8 +169,7 @@ while(1)
             }));
             continue;
         }
-        else
-        {
+        else {
             responseClient.rPush(inside_data.responseQueue, JSON.stringify({
                 id: inside_data.id,
                 success: false,
@@ -191,23 +178,29 @@ while(1)
             continue;
         }
     }
-    
+
     // here the request is order related
     let order = inside_data.order as Orders;
 
-    if (!wallet)
-    {
+    if (!wallet) {
         console.log("Error, no wallet found!!")
         continue;
     }
-    else if (!curr_Users.has(order.userId))
-    {
+    else if (!curr_Users.has(order.userId)) {
         curr_Users.set(order.userId, []);
         curr_Users.get(order.userId)?.push(order);
     }
-    
-    let orderbook = map.get(order.market)!;
-    
+
+    if ((order.side == "bids" && order.price * order.quantity > wallet["USD"]!.available) || (order.side == "asks" && order.quantity > wallet[order.asset]!.available)) {
+        responseClient.rPush(inside_data.responseQueue, JSON.stringify({
+            id: inside_data.id,
+            success: false,
+            error: "Insufficient balance"
+        }));
+        continue;
+    }
+    let orderbook = map.get(order.asset)!;
+
     orderbook.addOrder(order, order.side);
     orderbook.processOrder(order, order.side, order.type);
 

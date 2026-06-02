@@ -215,7 +215,7 @@ export type StockCreateInput = {
   name: string
   symbol: string
   orders?: Prisma.OrderCreateNestedManyWithoutAssetLinkInput
-  fills?: Prisma.fillsCreateNestedManyWithoutAssetInput
+  fills?: Prisma.fillsCreateNestedManyWithoutAssetlinkInput
   Wallet?: Prisma.WalletCreateNestedManyWithoutStockInput
 }
 
@@ -224,7 +224,7 @@ export type StockUncheckedCreateInput = {
   name: string
   symbol: string
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutAssetLinkInput
-  fills?: Prisma.fillsUncheckedCreateNestedManyWithoutAssetInput
+  fills?: Prisma.fillsUncheckedCreateNestedManyWithoutAssetlinkInput
   Wallet?: Prisma.WalletUncheckedCreateNestedManyWithoutStockInput
 }
 
@@ -233,7 +233,7 @@ export type StockUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
   orders?: Prisma.OrderUpdateManyWithoutAssetLinkNestedInput
-  fills?: Prisma.fillsUpdateManyWithoutAssetNestedInput
+  fills?: Prisma.fillsUpdateManyWithoutAssetlinkNestedInput
   Wallet?: Prisma.WalletUpdateManyWithoutStockNestedInput
 }
 
@@ -242,7 +242,7 @@ export type StockUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
   orders?: Prisma.OrderUncheckedUpdateManyWithoutAssetLinkNestedInput
-  fills?: Prisma.fillsUncheckedUpdateManyWithoutAssetNestedInput
+  fills?: Prisma.fillsUncheckedUpdateManyWithoutAssetlinkNestedInput
   Wallet?: Prisma.WalletUncheckedUpdateManyWithoutStockNestedInput
 }
 
@@ -334,7 +334,7 @@ export type StockCreateWithoutWalletInput = {
   name: string
   symbol: string
   orders?: Prisma.OrderCreateNestedManyWithoutAssetLinkInput
-  fills?: Prisma.fillsCreateNestedManyWithoutAssetInput
+  fills?: Prisma.fillsCreateNestedManyWithoutAssetlinkInput
 }
 
 export type StockUncheckedCreateWithoutWalletInput = {
@@ -342,7 +342,7 @@ export type StockUncheckedCreateWithoutWalletInput = {
   name: string
   symbol: string
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutAssetLinkInput
-  fills?: Prisma.fillsUncheckedCreateNestedManyWithoutAssetInput
+  fills?: Prisma.fillsUncheckedCreateNestedManyWithoutAssetlinkInput
 }
 
 export type StockCreateOrConnectWithoutWalletInput = {
@@ -366,7 +366,7 @@ export type StockUpdateWithoutWalletInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
   orders?: Prisma.OrderUpdateManyWithoutAssetLinkNestedInput
-  fills?: Prisma.fillsUpdateManyWithoutAssetNestedInput
+  fills?: Prisma.fillsUpdateManyWithoutAssetlinkNestedInput
 }
 
 export type StockUncheckedUpdateWithoutWalletInput = {
@@ -374,14 +374,14 @@ export type StockUncheckedUpdateWithoutWalletInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
   orders?: Prisma.OrderUncheckedUpdateManyWithoutAssetLinkNestedInput
-  fills?: Prisma.fillsUncheckedUpdateManyWithoutAssetNestedInput
+  fills?: Prisma.fillsUncheckedUpdateManyWithoutAssetlinkNestedInput
 }
 
 export type StockCreateWithoutOrdersInput = {
   id?: string
   name: string
   symbol: string
-  fills?: Prisma.fillsCreateNestedManyWithoutAssetInput
+  fills?: Prisma.fillsCreateNestedManyWithoutAssetlinkInput
   Wallet?: Prisma.WalletCreateNestedManyWithoutStockInput
 }
 
@@ -389,7 +389,7 @@ export type StockUncheckedCreateWithoutOrdersInput = {
   id?: string
   name: string
   symbol: string
-  fills?: Prisma.fillsUncheckedCreateNestedManyWithoutAssetInput
+  fills?: Prisma.fillsUncheckedCreateNestedManyWithoutAssetlinkInput
   Wallet?: Prisma.WalletUncheckedCreateNestedManyWithoutStockInput
 }
 
@@ -413,7 +413,7 @@ export type StockUpdateWithoutOrdersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
-  fills?: Prisma.fillsUpdateManyWithoutAssetNestedInput
+  fills?: Prisma.fillsUpdateManyWithoutAssetlinkNestedInput
   Wallet?: Prisma.WalletUpdateManyWithoutStockNestedInput
 }
 
@@ -421,7 +421,7 @@ export type StockUncheckedUpdateWithoutOrdersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   symbol?: Prisma.StringFieldUpdateOperationsInput | string
-  fills?: Prisma.fillsUncheckedUpdateManyWithoutAssetNestedInput
+  fills?: Prisma.fillsUncheckedUpdateManyWithoutAssetlinkNestedInput
   Wallet?: Prisma.WalletUncheckedUpdateManyWithoutStockNestedInput
 }
 

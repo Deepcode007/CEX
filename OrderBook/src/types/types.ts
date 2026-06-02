@@ -2,30 +2,30 @@ import type { STOCKS } from "../server";
 import { type UUID } from "crypto";
 
 export interface Orders {
-    userId: string,
-    market: Currency,
-    price: number,
-    quantity: number,
-    type: Type,
-    side: Side,
-    filled_quantity: number,
-    status: Status,
-    createdAt: Date,
-    id: string
+    userId: string;
+    asset: Currency;
+    price: number;
+    quantity: number;
+    type: Type;
+    side: Side;
+    filled_quantity: number;
+    status: Status;
+    createdAt: Date;
+    id: string;
+    filled?: number;
 }
 
-
 export interface Fills {
-    userId: string,
-    market: Currency,
-    price: number,
-    quantity: number,
-    type: Type,
-    side: Side,
-    filled_quantity: number,
-    status: Status,
-    createdAt: Date,
-    orderId: string
+    userId: string;
+    market: Currency;
+    price: number;
+    quantity: number;
+    type: Type;
+    side: Side;
+    filled_quantity: number;
+    status: Status;
+    createdAt: Date;
+    orderId: string;
 }
 
 export type AssetBalance = {
@@ -39,31 +39,30 @@ export interface Pricelevel {
     orders: Orders[];
 }
 
-type StockType = typeof STOCKS[number]["symbol"];
+type StockType = (typeof STOCKS)[number]["symbol"];
 
 export type Currency = StockType;
 export type Type = "limit" | "market";
 export type Side = "bids" | "asks";
 export type Status = "open" | "filled" | "cancelled";
 
-
 export type UserBalances = Partial<Record<Currency, AssetBalance>>;
 
 export type Balances = Map<string, UserBalances>;
 
 export type redis_dump_type = {
-    userId: string,
-    id: string,
-    asset: Currency,
-    delta: number,
+    userId: string;
+    id: string;
+    asset: Currency;
+    delta: number;
     reason: "PROCESS_ORDER";
-    createdAt: Date,
-    side: "taker" | "maker",
-    filled_quantity: number,
+    createdAt: Date;
+    side: "taker" | "maker";
+    filled_quantity: number;
     quantity: number;
     price: number;
-    type: "limit" | "market"
-}
+    type: "limit" | "market";
+};
 
 export type worker_reason_type =
     | "PROCESS_ORDER"
@@ -72,19 +71,18 @@ export type worker_reason_type =
     | "CANCEL_ORDER"
     | "CREATE_ORDER";
 
-
 export type EngineCommandType =
-  | "create_order"
-  | "get_depth"
-  | "get_user_balance"
-  | "get_order"
-  | "cancel_order"
-  | "deposit"
-  | "withdraw";
+    | "create_order"
+    | "get_depth"
+    | "get_user_balance"
+    | "get_order"
+    | "cancel_order"
+    | "deposit"
+    | "withdraw";
 
 export type EngineRequest = {
-    id: UUID,
+    id: UUID;
     responseQueue: string;
-    type: EngineCommandType,
-    order: Record<any, any>
-}
+    type: EngineCommandType;
+    order: Record<any, any>;
+};
