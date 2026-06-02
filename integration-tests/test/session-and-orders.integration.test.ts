@@ -10,6 +10,7 @@ import {
   jsonBody,
   uniqueEmail,
 } from "./helpers";
+import { sleep, sleepSync } from "bun";
 
 type Asset = "ETH" | "SOL" | "USD";
 type OrderStatus = "open" | "filled" | "cancelled";
@@ -307,6 +308,108 @@ describe("CEX integration - route contracts, order book, and matching", () => {
     });
     expect(badFills.status).toBe(400);
     expectApiFailure(await jsonBody(badFills));
+  });
+
+  test("fails to place a buy order with insufficient USD balance", async () => {
+    const trader = await createSession("E2E Insufficient Buy");
+    await createWallet(trader.token, "SOL");
+    // No USD deposited
+    
+    const res = await postJson(`${base}/order`, trader.token, {
+      side: "buy",
+      type: "limit",
+      symbol: "SOL",
+      price: 100,
+      quantity: 1,
+    });
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expectApiFailure(await jsonBody(res));
+  });
+
+  test("fails to place a sell order with insufficient asset balance", async () => {
+    const trader = await createSession("E2E Insufficient Sell");
+    await createWallet(trader.token, "SOL");
+    // No SOL deposited
+    
+    const res = await postJson(`${base}/order`, trader.token, {
+      side: "sell",
+      type: "limit",
+      symbol: "SOL",
+      price: 100,
+      quantity: 1,
+    });
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expectApiFailure(await jsonBody(res));
+  });
+
+  test("fails to place an order with zero quantity or negative price", async () => {
+    const trader = await createSession("E2E Bad Order");
+    await createWallet(trader.token, "SOL");
+    await deposit(trader.token, "USD", 1000);
+    
+    const resZeroQuantity = await postJson(`${base}/order`, trader.token, {
+      side: "buy",
+      type: "limit",
+      symbol: "SOL",
+      price: 100,
+      quantity: 0,
+    });
+    expect(resZeroQuantity.status).toBeGreaterThanOrEqual(400);
+
+    const resNegativePrice = await postJson(`${base}/order`, trader.token, {
+      side: "buy",
+      type: "limit",
+      symbol: "SOL",
+      price: -10,
+      quantity: 1,
+    });
+    expect(resNegativePrice.status).toBeGreaterThanOrEqual(400);
+  });
+
+  test("limit order partially fills and leaves remaining quantity on the book", async () => {
+    // clear the orderbook before running again
+    const maker = await createSession("E2E Maker Partial");
+    const taker = await createSession("E2E Taker Partial");
+    const price = uniqueLargePrice();
+
+    await createWallet(maker.token, "ETH");
+    await createWallet(taker.token, "ETH");
+
+    // Maker sells 5 ETH
+    await deposit(maker.token, "ETH", 5);
+    const ask = await placeOrder(maker.token, {
+      side: "sell",
+      type: "limit",
+      symbol: "ETH",
+      price,
+      quantity: 5,
+    });
+
+    // Taker buys 3 ETH
+    await deposit(taker.token, "USD", price * 3);
+    const bid = await placeOrder(taker.token, {
+      side: "buy",
+      type: "limit",
+      symbol: "ETH",
+      price,
+      quantity: 3,
+    });
+    expect(bid.status).toBe("filled");
+    expect(bid.filled_quantity).toBe(3);
+
+    // Maker order should be partially filled (filled_quantity = 3)
+    // wait few seconds
+    sleepSync(3000);
+    const makerOrdersRes = await fetch(`${base}/orders`, { headers: authHeaders(maker.token) });
+    const makerOrders = await jsonBody(makerOrdersRes);
+    const makerOrder = (makerOrders as any).data.find((o: any) => o.id === ask.orderId);
+    console.log("hehe ", makerOrder);
+    expect(makerOrder.filled_quantity).toBe(3);
+    expect(makerOrder.status).toBe("open");
+
+    // Depth should show remaining 2 ETH at the price level
+    const depth = await getDepth(maker.token, "ETH");
+    expect(depth.asks.some((level) => level.price === price && level.total_quantity >= 2)).toBe(true);
   });
 
   async function createSession(name: string): Promise<Session> {
