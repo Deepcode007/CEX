@@ -59,18 +59,6 @@ export class OrderBook {
             order.filled = 0;
             this.orderMap.set(order.id, order);
             saved = order;
-            let price_bucket = this[side].get(order.price);
-            if (!price_bucket) {
-                let price = {
-                    total_quantity: 0,
-                    price: order.price,
-                    orders: [],
-                };
-                this[saved.side].set(order.price, price);
-                price_bucket = this[side].get(order.price);
-            }
-            price_bucket!.orders.push(order);
-            price_bucket!.total_quantity += order.quantity;
 
             let wallet = BALANCES.get(order.userId)!;
             if (side == "bids") {
@@ -232,18 +220,6 @@ export class OrderBook {
         let walletIncoming = BALANCES.get(incoming.userId)![incoming.asset]!;
 
         for (let order of makerLevel.orders) {
-            if (incoming.filled_quantity == incoming.quantity) {
-                incoming.status = "filled";
-                if (incoming.side === "bids") {
-                    walletIncomingUSD.available += incoming.quantity * incoming.price - incoming.filled!;
-                    walletIncomingUSD.locked -= incoming.quantity * incoming.price - incoming.filled!;
-                }
-                else {
-                    walletIncomingUSD.available += incoming.quantity - incoming.filled!;
-                    walletIncomingUSD.locked -= incoming.quantity - incoming.filled!;
-                }
-                break;
-            }
             let req_qty = Math.min(
                 incoming.quantity - incoming.filled_quantity,
                 order.quantity - order.filled_quantity,
@@ -298,6 +274,7 @@ export class OrderBook {
                 makerLevel.total_quantity -= req_qty;
             }
 
+            // maker order filled
             if (order.filled_quantity == order.quantity) {
                 filled++;
                 order.status = "filled";
@@ -310,6 +287,20 @@ export class OrderBook {
                     walletMaker.available += order.quantity - order.filled!;
                     walletMaker.locked -= order.quantity - order.filled!;
                 }
+            }
+
+            // incoming oder filled
+            if (incoming.filled_quantity == incoming.quantity) {
+                incoming.status = "filled";
+                if (incoming.side === "bids") {
+                    walletIncomingUSD.available += incoming.quantity * incoming.price - incoming.filled!;
+                    walletIncomingUSD.locked -= incoming.quantity * incoming.price - incoming.filled!;
+                }
+                else {
+                    walletIncoming.available += incoming.quantity - incoming.filled!;
+                    walletIncoming.locked -= incoming.quantity - incoming.filled!;
+                }
+                break;
             }
         }
 
