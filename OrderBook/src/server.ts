@@ -202,7 +202,7 @@ while (1) {
     let orderbook = map.get(order.asset)!;
 
     orderbook.addOrder(order, order.side);
-    orderbook.processOrder(order, order.side, order.type);
+    await orderbook.processOrder(order, order.side, order.type);
 
     responseClient.rPush(inside_data.responseQueue, JSON.stringify({
         id: inside_data.id,
