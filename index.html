@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CEX Codebase Analysis</title>
+    <style>
+      :root {
+        --bg: #070808;
+        --fg: #e7e7e7;
+        --muted: #9a9a9a;
+        --purple: #a783e8;
+        --orange: #ffb13b;
+        --green: #6ee28c;
+        --cyan: #58d7de;
+        --red: #ff647a;
+        --line: #858585;
+        --table: #767676;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--bg);
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-width: 1120px;
+        background: var(--bg);
+        color: var(--fg);
+        font: 24px/1.42 "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        letter-spacing: 0;
+      }
+
+      main {
+        width: 100%;
+        padding: 26px 76px 56px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        color: var(--purple);
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        display: inline-block;
+        margin-bottom: 56px;
+        border-bottom: 2px solid var(--purple);
+        font-size: 28px;
+        line-height: 1.2;
+      }
+
+      h2 {
+        margin: 0 0 26px;
+        font-size: 28px;
+      }
+
+      h3 {
+        margin: 40px 0 20px;
+        font-size: 27px;
+      }
+
+      p {
+        margin: 0 0 28px;
+      }
+
+      section {
+        margin: 0 0 58px;
+      }
+
+      hr {
+        height: 1px;
+        margin: 48px 0 66px;
+        border: 0;
+        background: var(--line);
+      }
+
+      pre {
+        margin: 0 0 34px;
+        color: var(--fg);
+        font: inherit;
+        line-height: 1.34;
+        white-space: pre;
+      }
+
+      table {
+        width: 100%;
+        margin: 24px 0 48px;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--table);
+        padding: 16px 8px;
+        text-align: left;
+        vertical-align: top;
+        font-weight: 400;
+      }
+
+      th {
+        color: var(--purple);
+        font-weight: 800;
+      }
+
+      .terminal {
+        max-width: 2650px;
+      }
+
+      .purple {
+        color: var(--purple);
+        font-weight: 800;
+      }
+
+      .orange {
+        color: var(--orange);
+        font-weight: 800;
+      }
+
+      .green {
+        color: var(--green);
+      }
+
+      .cyan {
+        color: var(--cyan);
+      }
+
+      .red {
+        color: var(--red);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .italic {
+        color: #ffd36b;
+        font-style: italic;
+      }
+
+      .small-gap {
+        margin-bottom: 18px;
+      }
+
+      .command {
+        color: var(--red);
+      }
+
+      .comment {
+        color: var(--fg);
+        font-style: italic;
+      }
+
+      .wide {
+        overflow-x: auto;
+      }
+
+      @media (max-width: 1200px) {
+        body {
+          min-width: 0;
+          font-size: 15px;
+        }
+
+        main {
+          padding: 22px 18px 42px;
+        }
+
+        h1,
+        h2 {
+          font-size: 19px;
+        }
+
+        h3 {
+          font-size: 18px;
+        }
+
+        .wide {
+          margin-right: -18px;
+          padding-right: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="terminal">
+      <h1>CEX -- Centralized Exchange: Complete Codebase Analysis</h1>
+
+      <section>
+        <h2>1. PROJECT OVERVIEW</h2>
+        <p><span class="orange">CEX</span> is a <span class="orange">centralized cryptocurrency/asset exchange</span> built as a microservice architecture. It simulates a real exchange with an order book matching engine, wallet management, user authentication, and asynchronous database persistence. The project is a monorepo (single git repo) containing four independent services/packages, each with its own <span class="green">package.json</span>, Prisma schema, and <span class="green">.env</span>.</p>
+      </section>
+
+      <hr>
+
+      <section>
+        <h2>2. TOP-LEVEL DIRECTORY STRUCTURE</h2>
+        <pre>/Users/deep/Desktop/Projects/CEX/
+  .git/                         # Git repository
+  backend/                      # HTTP API gateway (Express + Bun)
+  OrderBook/                    # Matching engine (consumes Redis queues)
+  UpdateWorker/                 # Database persistence worker (consumes Redis streams)
+  integration-tests/            # E2E test suite (bun:test)</pre>
+      </section>
+
+      <hr>
+
+      <section>
+        <h2>3. ARCHITECTURE DIAGRAM (Data Flow)</h2>
+        <pre>+-------------------------------------------------------------------------+
+|                        REQUEST / RESPONSE FLOW                         |
+|                                                                         |
+|  Client --HTTP--&gt; Backend --lPush--&gt; Redis Queue --brPop--&gt; OrderBook  |
+|                      ^        (queue1_requests)                         |
+|                      |                                                  |
+|                      +--brPop---- Redis Queue &lt;--rPush-----------------+
+|                           (be1 response queue)                          |
+|                                                                         |
+|  Correlation Pattern:                                                   |
+|  +----------+   UUID    +--------------+   match    +----------+        |
+|  | Generate +----------&gt;| Promise Map  +-----------&gt;| Resolve  |        |
+|  | corrId   |           | (pending)    |            | &amp; Reply  |        |
+|  +----------+           +--------------+            +----------+        |
+|                         timeout: 30s                                    |
++-------------------------------------------------------------------------+
+
++-------------------------------------------------------------------------+
+|                     EVENT STREAM (FIRE &amp; FORGET)                       |
+|                                                                         |
+|  OrderBook --xAdd--&gt; Redis Stream --xRead--&gt; UpdateWorker --&gt; Postgres |
+|                    (DB_DUMP_STREAM)          (batch: 50)                |
+|                                              BLOCK: 0                   |
+|                                                                         |
+|  Events: CREATE_ORDER, PROCESS_ORDER, DEPOSIT, WITHDRAW, CANCEL_ORDER   |
++-------------------------------------------------------------------------+
+
++-------------------------------------------------------------------------+
+|                      DATABASE ACCESS PATTERN                            |
+|                                                                         |
+|  Backend      -- Prisma READ  --&gt; PostgreSQL (users, orders, fills)     |
+|  OrderBook    -- Prisma READ  --&gt; PostgreSQL (wallet cache miss only)   |
+|  UpdateWorker -- Prisma WRITE --&gt; PostgreSQL (orders, fills, wallets)   |
++-------------------------------------------------------------------------+</pre>
+      </section>
+
+      <hr>
+
+      <section>
+        <h2>4. DETAILED SERVICE BREAKDOWN</h2>
+
+        <h3>4.1. backend/ -- HTTP API Gateway</h3>
+        <p><span class="purple">Purpose:</span> The user-facing REST API. Handles authentication, input validation, and proxies trade/balance commands to the OrderBook engine via Redis. Waits for asynchronous responses from the engine using a correlation-ID-based request/response pattern.</p>
+        <p><span class="purple">Language/Framework:</span> TypeScript, Express.js v5, Bun runtime</p>
+        <p><span class="purple">Entry Point:</span> <span class="green">/Users/deep/Desktop/Projects/CEX/backend/src/server.ts</span></p>
+
+        <pre><span class="purple">Dependencies (from package.json):</span>
+- express v5.2.1                  -- HTTP framework
+- @prisma/client v7.8.0 + @prisma/adapter-pg
+- redis v5.12.1                   -- Redis client
+- bcrypt v6                       -- Password hashing
+- jsonwebtoken v9                 -- JWT auth
+- zod v4.4.2                      -- Schema validation
+- prisma v7.8.0                   -- DB migrations/codegen
+
+<span class="purple">Environment Variables:</span>
+DATABASE_URL        postgresql://deep@localhost:5432/CEX
+PORT                3000
+JWT_KEY             tsdjyfkughj
+REDIS_SERVER_URL    redis://127.0.0.1:6378
+REDIS_WORKER_URL    redis://127.0.0.1:6380
+REDIS_SEND_QUEUE    queue1_requests
+backend_Id          be1
+ENGINE_TIMEOUT_MS   30000</pre>
+
+        <pre><span class="purple">Directory Structure:</span>
+backend/src/
+  server.ts                  # Express app setup, Redis connect, route loading
+  inmemory.ts                # In-memory STOCKS map loaded from DB at startup
+  config/env.ts              # Zod-validated environment variable parsing
+  controllers/
+    SignupHandler.ts         # POST /signup
+    LoginHandler.ts          # POST /login
+    OrderHandler.ts          # POST /order
+    deleteOrder.ts           # DELETE /order/:orderId
+    depthhandler.ts          # GET /orderbook/:symbol
+    fillsHandler.ts          # GET /fills/:symbol
+    getbalance.ts            # GET /balance
+    addBalance.ts            # POST /wallet/add
+    createWallet.ts          # POST /wallet
+    getOrdersHandler.ts      # GET /orders
+  middlewares/
+    auth.ts                  # JWT verification middleware
+    token.ts                 # JWT creation helper
+  models/                    # Zod schemas
+  redis/
+    redisConnect.ts          # Creates publisher + subscriber Redis clients
+    redisSend.ts             # sendToEngine(): lPush with correlationId
+    redisListener.ts         # brPop response listener loop
+  store/redis_Responses.ts   # Promise-based correlation store
+  services/hash.ts           # bcrypt hash() and compare() wrappers
+  lib/helpers.ts             # Zod validation helper
+  types/                     # Express and Redis request/response types</pre>
+
+        <pre><span class="purple">Redis Communication Pattern (Request/Response):</span>
+1. Backend generates a correlationId (UUID) and creates a Promise stored in pendingResponses Map
+2. Backend lPushes JSON to queue1_requests containing {id, responseQueue: "be1", type, order}
+3. Backend listener brPops on "be1" queue for responses
+4. When a response arrives with matching id, the stored Promise is resolved
+5. If no response arrives within ENGINE_TIMEOUT_MS, the Promise is rejected</pre>
+
+        <h3>4.2. OrderBook/ -- Matching Engine</h3>
+        <p><span class="purple">Purpose:</span> The core exchange engine. Maintains in-memory order books, processes orders with price-time priority matching, manages user balances in memory, and streams all state changes to Redis for database persistence.</p>
+        <p><span class="purple">Language/Framework:</span> TypeScript, Bun runtime (no HTTP framework -- pure Redis consumer)</p>
+        <p><span class="purple">Entry Point:</span> <span class="green">/Users/deep/Desktop/Projects/CEX/OrderBook/src/server.ts</span></p>
+
+        <pre><span class="purple">Dependencies:</span>
+- redis v5.12.1                 -- Redis client
+- sorted-btree v2.1.0           -- B-Tree data structure for price-level ordering
+- @prisma/client + @prisma/adapter-pg
+- zod v4.4.3                    -- Env validation
+
+<span class="purple">Environment Variables:</span>
+REDIS_SERVER_URL    redis://127.0.0.1:6378
+REDIS_DB_DUMP_URL   redis://127.0.0.1:6378
+REDIS_LISTEN_QUEUE  queue1_requests
+DATABASE_URL        postgresql://deep@localhost:5432/CEX</pre>
+
+        <pre><span class="purple">Directory Structure:</span>
+OrderBook/src/
+  server.ts                     # Main event loop: brPop queue, dispatch by type
+  envParse.ts                   # Zod-validated env parsing
+  class/Orderbook.ts            # Core OrderBook class with B-Tree matching engine
+  helpers/cancelOrder.ts        # Sends CANCEL_ORDER to Redis stream for DB
+  helpers/getWallet.ts          # Reads wallet from Postgres on cache miss
+  helpers/updateWallet.ts       # Sends DEPOSIT to Redis stream for DB
+  helpers/redisProcessor.ts     # Sends PROCESS_ORDER events to stream
+  redis/dumpRedisWorker.ts      # dump(): xAdd to DB_DUMP_STREAM
+  redis/SendRedisWorker.ts      # sendToWorker(): generic xAdd to stream
+  models/env.ts                 # Zod schema for env vars
+  types/types.ts                # Orders, Fills, Pricelevel, balances, commands</pre>
+
+        <pre><span class="purple">Three Redis Clients:</span>
+1. readClient      -- brPop on queue1_requests to receive commands from backend
+2. responseClient  -- rPush responses back to the backend queue, e.g. "be1"
+3. toWorker        -- xAdd to DB_DUMP_STREAM for database persistence
+
+<span class="purple">In-Memory State:</span>
+- map: Map&lt;Currency, OrderBook&gt;       -- One OrderBook instance per trading pair (SOL, ETH)
+- curr_Users: Map&lt;string, Orders[]&gt;   -- Tracks orders per user
+- BALANCES: Map&lt;string, UserBalances&gt; -- User balances cached in memory
+
+<span class="purple">OrderBook Class:</span>
+- bids: BTree sorted descending, highest price first
+- asks: BTree sorted ascending, lowest price first
+- orderMap: Map&lt;string, Orders&gt; for O(1) order lookup
+- addOrder(), processOrder(), executeTrade(), cancelOrder(), getDepth()
+- getBestBid() / getBestAsk() for top-of-book access</pre>
+
+        <pre><span class="purple">Matching Engine Flow:</span>
+New Order
+  |
+  v
+Lock Balance                 Deduct available balance and move funds to locked
+  |
+  v
+processOrder()
+  |-- No match  --&gt; Add to book as a resting order
+  |
+  +-- Match found
+       |
+       v
+executeTrade()               FIFO within the matched price level
+       |
+       |-- Update maker balance
+       |-- Update taker balance
+       |-- Stream four PROCESS_ORDER events to DB_DUMP_STREAM
+       |   |-- Maker base asset transaction
+       |   |-- Maker quote asset transaction
+       |   |-- Taker base asset transaction
+       |   +-- Taker quote asset transaction
+       +-- Return fill details
+
+<span class="purple">Cancellation:</span>
+- Remove order from the BTree price level
+- Unlock frozen balance
+- Stream CANCEL_ORDER to UpdateWorker
+
+<span class="purple">Price-Time Priority:</span>
+- Price: best price matched first
+- Time: FIFO within the same price level
+
+<span class="purple">Supported Order Types:</span>
+- limit  -- specify price + quantity
+- market -- quantity only, matched at best available price</pre>
+
+        <h3>4.3. UpdateWorker/ -- Database Persistence Worker</h3>
+        <p><span class="purple">Purpose:</span> Asynchronous database writer. Consumes events from the <span class="green">DB_DUMP_STREAM</span> Redis stream and persists order/trade/balance changes to PostgreSQL. This decouples the hot path from slow database writes.</p>
+        <p><span class="purple">Language/Framework:</span> TypeScript, Bun runtime (no HTTP framework -- pure Redis stream consumer)</p>
+        <p><span class="purple">Entry Point:</span> <span class="green">/Users/deep/Desktop/Projects/CEX/UpdateWorker/src/server.ts</span></p>
+
+        <pre><span class="purple">Stream Consumption Pattern:</span>
+- Uses xRead with BLOCK: 0 on stream DB_DUMP_STREAM
+- Reads up to 50 messages per batch
+- Tracks lastId to resume from the last processed message
+- Starts from "$" so only new messages are consumed after connection time
+
+<span class="purple">Message Types Handled:</span>
+CREATE_ORDER       prisma.order.create()
+PROCESS_ORDER      Transaction: create transaction + update wallet + create fill + update order status
+DEPOSIT/WITHDRAW   Transaction: update wallet balance + create transaction record
+CANCEL_ORDER       Update order status to "cancelled" + refund wallet balance</pre>
+
+        <h3>4.4. integration-tests/ -- E2E Test Suite</h3>
+        <pre>integration-tests/test/
+  helpers.ts                              # base URL, auth headers, unique emails
+  smoke.integration.test.ts               # /health, /stocks, 401 check
+  session-and-orders.integration.test.ts  # signup -> login -> place orders
+
+<span class="purple">Coverage:</span>
+- GET /health returns {ok: true}
+- GET /stocks is public
+- POST /order without auth returns 401
+- Signup then login returns JWT
+- Place limit ETH order with JWT
+- Reject unknown symbol (BTC) with 400</pre>
+      </section>
+
+      <hr>
+
+      <section>
+        <h2>5. API SURFACE</h2>
+        <pre><span class="purple">REST API (Express v5 -- port 3000)</span>
+PUBLIC (no auth)
+  POST   /signup              Register user and create USD wallet
+  POST   /login               Authenticate and return JWT token
+  GET    /stocks              List available trading pairs
+  GET    /health              Redis ping health check
+
+PROTECTED (JWT required)
+  Orders
+    POST   /order             Place limit/market order through the engine
+    DELETE /order/:orderId    Cancel order through the engine
+    GET    /orders            List user orders, optionally filtered by status
+
+  Market Data
+    GET    /orderbook/:symbol Order book depth from the engine
+    GET    /fills/:symbol     Recent trades from the database
+
+  Wallet
+    GET    /balance           User balance from the engine
+    POST   /wallet/add        Deposit funds through the engine
+    POST   /wallet            Create wallet for a new asset in the database
+
+<span class="purple">Engine Commands (internal -- via Redis)</span>
+create_order, cancel_order, get_depth, get_user_balance, get_order, deposit, withdraw</pre>
+      </section>
+
+      <hr>
+
+      <section>
+        <h2>6. DATABASE SCHEMA (Shared Across All Services)</h2>
+        <p>All three services share the <span class="orange">identical</span> Prisma schema pointing at the same PostgreSQL database (<span class="green">CEX</span> on localhost:5432).</p>
+
+        <h3>Models:</h3>
+        <h3>User</h3>
+        <div class="wide">
+          <table>
+            <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>id</td><td>UUID (String)</td><td>Primary key, auto-generated</td></tr>
+              <tr><td>email</td><td>String</td><td>Unique</td></tr>
+              <tr><td>password</td><td>String</td><td>bcrypt hashed</td></tr>
+              <tr><td>name</td><td>String</td><td>Display name</td></tr>
+              <tr><td><span class="italic">relations</span></td><td></td><td>orders[], fills[], wallet[], transactions[]</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Wallet</h3>
+        <div class="wide">
+          <table>
+            <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>id</td><td>UUID</td><td>Primary key</td></tr>
+              <tr><td>userid</td><td>String</td><td>FK -> User.id</td></tr>
+              <tr><td>asset</td><td>String</td><td>FK -> Stock.symbol</td></tr>
+              <tr><td>balance</td><td>Int</td><td>Current balance</td></tr>
+              <tr><td><span class="italic">constraint</span></td><td></td><td>Unique(userid, asset)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Transactions</h3>
+        <div class="wide">
+          <table>
+            <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>id</td><td>UUID</td><td>Primary key</td></tr>
+              <tr><td>userid</td><td>String</td><td>FK -> User.id</td></tr>
+              <tr><td>walletId</td><td>String</td><td>FK -> Wallet.id</td></tr>
+              <tr><td>type</td><td>Transaction_type</td><td>DEPOSIT / WITHDRAW / PROCESS_ORDER / FEE_DEDUCTION</td></tr>
+              <tr><td>delta</td><td>Int</td><td>Amount change (+/-)</td></tr>
+              <tr><td>createdAt</td><td>DateTime</td><td>Auto timestamp</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Stock</h3>
+        <div class="wide">
+          <table>
+            <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>id</td><td>UUID</td><td>Primary key</td></tr>
+              <tr><td>name</td><td>String</td><td>e.g., "Solana"</td></tr>
+              <tr><td>symbol</td><td>String</td><td>Unique, e.g., "SOL"</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Order</h3>
+        <div class="wide">
+          <table>
+            <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>id</td><td>UUID</td><td>Primary key</td></tr>
+              <tr><td>userId</td><td>String</td><td>FK -> User.id</td></tr>
+              <tr><td>asset</td><td>String</td><td>FK -> Stock.symbol</td></tr>
+              <tr><td>price</td><td>Int?</td><td>Nullable; market orders have no price</td></tr>
+              <tr><td>quantity</td><td>Int</td><td>Order size</td></tr>
+              <tr><td>type</td><td>Type</td><td>limit / market</td></tr>
+              <tr><td>side</td><td>Side</td><td>taker / maker</td></tr>
+              <tr><td>filled_quantity</td><td>Int</td><td>How much has been filled</td></tr>
+              <tr><td>status</td><td>Status</td><td>open / filled / cancelled</td></tr>
+              <tr><td>createdAt</td><td>DateTime</td><td>Auto</td></tr>
+              <tr><td>closedAt</td><td>DateTime</td><td>Auto</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>fills</h3>
+        <div class="wide">
+          <table>
+            <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>id</td><td>UUID</td><td>Primary key</td></tr>
+              <tr><td>userId</td><td>String</td><td>FK -> User.id</td></tr>
+              <tr><td>asset</td><td>String</td><td>FK -> Stock.symbol</td></tr>
+              <tr><td>orderId</td><td>String</td><td>FK -> Order.id</td></tr>
+              <tr><td>price</td><td>Int</td><td>Executed price</td></tr>
+              <tr><td>quantity</td><td>Int</td><td>Executed quantity</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <pre><span class="purple">Enums:</span>
+- Type: limit, market
+- Side: taker, maker
+- Status: open, filled, cancelled
+- Transaction_type: DEPOSIT, WITHDRAW, PROCESS_ORDER, FEE_DEDUCTION
+
+<span class="purple">Migration History (10 migrations, May 2026):</span>
+1. init
+2. decimal_to_int
+3. transactionschema
+4. update_schema
+5. add_delta_field
+6. add_datetime_in_transactions
+7. add_closed_at_to_orders
+8. update_schema
+9. minor
+10. add_default_date_time_in_trancaction</pre>
+      </section>
+
+      <hr>
+
+      <section>
+        <h2>7. INTER-SERVICE COMMUNICATION</h2>
+        <pre><span class="purple">Channel 1: Backend &lt;&gt; OrderBook (Redis List Queues -- Request/Response)</span>
+Backend   -> OrderBook    LPush / brPop  queue1_requests     JSON {id, responseQueue, type, order}
+OrderBook -> Backend      rPush / brPop   be1                 JSON {id, success, data/error}
+
+This is a synchronous request-response over async queues. The backend generates a correlation UUID,
+pushes to the request queue, and blocks on a Promise that resolves when the named response queue
+receives a message with the matching ID. Timeout is 30 seconds.
+
+Supported command types: create_order, get_depth, get_user_balance, get_order, cancel_order, deposit, withdraw
+
+<span class="purple">Channel 2: OrderBook -> UpdateWorker (Redis Stream -- Fire-and-Forget)</span>
+OrderBook pushes events as trades execute. UpdateWorker consumes them asynchronously in batches of up to 50.
+Message types: CREATE_ORDER, PROCESS_ORDER, DEPOSIT, WITHDRAW, CANCEL_ORDER.
+
+<span class="purple">Channel 3: All Services -> PostgreSQL (Direct via Prisma)</span>
+- Backend: Reads users, stocks, orders, fills, wallets directly from DB
+- OrderBook: Reads wallet balances on cache miss
+- UpdateWorker: Writes all persistent state</pre>
+      </section>
+
+      <hr>
+
+      <section>
+        <h2>8. TECH STACK SUMMARY</h2>
+        <div class="wide">
+          <table>
+            <thead><tr><th>Layer</th><th>Technology</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Runtime</td><td>Bun</td><td>Used by backend, OrderBook, UpdateWorker, and tests</td></tr>
+              <tr><td>Language</td><td>TypeScript 5</td><td>Strict, ESNext-oriented service code</td></tr>
+              <tr><td>API</td><td>Express v5</td><td>HTTP gateway only</td></tr>
+              <tr><td>Validation</td><td>Zod</td><td>Env and request schemas</td></tr>
+              <tr><td>Database</td><td>PostgreSQL</td><td>CEX database on localhost:5432</td></tr>
+              <tr><td>ORM</td><td>Prisma v7.8</td><td>Each service generates its own Prisma client</td></tr>
+              <tr><td>Messaging</td><td>Redis lists + streams</td><td>Request/response queues and persistence stream</td></tr>
+              <tr><td>Matching</td><td>sorted-btree</td><td>Price-level ordering for bids and asks</td></tr>
+              <tr><td>Auth</td><td>JWT + bcrypt</td><td>User sessions and password hashing</td></tr>
+              <tr><td>Package Manager</td><td>Bun</td><td>Uses Bun package/runtime tooling</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <hr>
+
+      <section>
+        <h2>9. CONFIGURATION AND DEPLOYMENT</h2>
+        <h3>Running Locally:</h3>
+        <p>Each service is started independently:</p>
+        <pre><span class="command">cd backend</span> <span class="cyan">&amp;&amp;</span> <span class="command">bun run src/server.ts</span>       <span class="comment"># HTTP API on port 3000</span>
+<span class="command">cd OrderBook</span> <span class="cyan">&amp;&amp;</span> <span class="command">bun run src/server.ts</span>     <span class="comment"># Matching engine (no HTTP port)</span>
+<span class="command">cd UpdateWorker</span> <span class="cyan">&amp;&amp;</span> <span class="command">bun run src/server.ts</span>  <span class="comment"># DB writer (no HTTP port)</span></pre>
+
+        <h3>Infrastructure Requirements:</h3>
+        <pre>- <span class="orange">PostgreSQL</span> on <span class="green">localhost:5432</span> with database <span class="green">CEX</span>
+- <span class="orange">Redis</span> on <span class="green">localhost:6378</span> (non-standard port; used by all services)
+- Stocks (SOL, ETH, USD) must be pre-seeded in the <span class="green">Stock</span> table</pre>
+
+        <h3>No Docker/K8s:</h3>
+        <p>There are <span class="orange">no</span> Docker, docker-compose, Kubernetes, or CI/CD configuration files in the project. Deployment is manual/local only.</p>
+
+        <h3>Horizontal Scaling Note:</h3>
+        <p>The <span class="green">backend_Id</span> env variable (<span class="green">be1</span>) is the response queue name, which means multiple backend instances could theoretically run with different IDs (e.g., <span class="green">be1</span>, <span class="green">be2</span>), each listening on its own response queue. However, the OrderBook engine is a single process with in-memory state, so it cannot be horizontally scaled without architectural changes.</p>
+      </section>
+
+      <hr>
+
+      <section>
+        <h2>10. KEY ARCHITECTURAL OBSERVATIONS</h2>
+        <pre>1. <span class="orange">CQRS-lite Pattern:</span> The OrderBook engine is the single source of truth for real-time state
+   (balances, order books). The database is updated asynchronously by the UpdateWorker and is used
+   primarily for historical queries and cold-start data loading.
+
+2. <span class="orange">In-Memory Engine:</span> The entire order book and user balances live in memory within the OrderBook process.
+   This gives extremely fast matching but means all state is lost on restart. There is no visible
+   snapshot/recovery mechanism.
+
+3. <span class="orange">Event Sourcing (partial):</span> Trade events are streamed via Redis Streams (<span class="green">DB_DUMP_STREAM</span>), which provides
+   ordered persistent event delivery to the UpdateWorker. However, there is no replay mechanism to
+   rebuild engine state from events.
+
+4. <span class="orange">Shared Schema, Separate Codegen:</span> All three services have identical <span class="green">schema.prisma</span> files but generate
+   their own Prisma client into local <span class="green">prisma/generated/</span> directories. Only the <span class="green">backend/</span> has migration files.
+
+5. <span class="orange">Cross-Service Import (code smell):</span> The OrderBook class imports across service boundaries to share env
+   config and generated Prisma enums. These imports create tight coupling between packages.
+
+6. <span class="orange">Balance Types:</span> Balances use <span class="green">Int</span>, suggesting the system works with whole units (cents, satoshis, or
+   similar atomic units) to avoid floating-point precision issues.</pre>
+      </section>
+
+      <hr>
+
+      <section>
+        <h2>11. IMPROVEMENT OPPORTUNITIES</h2>
+        <pre><span class="purple">Resilience</span>
+- Add engine state snapshots, either via Redis persistence or custom serialization
+- Implement event replay from Redis Streams for crash recovery
+- Add Redis Streams consumer groups for UpdateWorker scaling
+
+<span class="purple">Scalability</span>
+- Shard OrderBook by trading pair, with one engine per symbol or symbol group
+- Add WebSocket server for real-time price and depth feeds
+- Introduce API rate limiting per user and endpoint
+
+<span class="purple">Code Quality</span>
+- Fix cross-service imports from OrderBook into UpdateWorker and backend-generated files
+- Extract shared types and enums into a common package
+- Consolidate duplicate Prisma schemas into a single source
+
+<span class="purple">Operations</span>
+- Add Dockerfiles and docker-compose for local development
+- Add CI/CD pipeline for lint, test, build, and deploy
+- Add health checks for non-HTTP services
+
+<span class="purple">Security</span>
+- Move JWT_KEY to proper secret management
+- Add input sanitization and request hardening beyond Zod validation
+- Implement rate limiting on auth endpoints
+- Add explicit CORS configuration
+
+<span class="purple">Monitoring</span>
+- Add structured logging
+- Add metrics for order latency and fill rate
+- Add Redis stream lag monitoring</pre>
+      </section>
+    </main>
+  </body>
+</html>
