@@ -70,11 +70,13 @@ export async function Orderhandler(req: Request, res: Response) {
         })
     }
 
+    console.log("undefined data ", response);
+
 
     res.status(201).json({
         success: true,
         data: {
-            orderId: response.id,
+            orderId: response.data.id,
             asset: data.symbol,
             quantity: data.quantity,
             filled_quantity: response.data.filled_quantity,

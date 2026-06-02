@@ -3,7 +3,6 @@ import type {
     Orders,
     Pricelevel,
     Side,
-    Type,
     worker_reason_type,
 } from "../types/types";
 import { createClientPool, type RedisClientPoolType } from "redis";
@@ -61,6 +60,7 @@ export class OrderBook {
             saved = order;
 
             let wallet = BALANCES.get(order.userId)!;
+            console.log("wallet of Oid: ", order.id, " is ", wallet);
             if (side == "bids") {
                 // buy asset
                 wallet["USD"]!.available -= order.price * order.quantity;
@@ -161,7 +161,7 @@ export class OrderBook {
         return this.asks.get(maxBuyer as number);
     }
 
-    public async processOrder(incoming: Orders, side: Side, type: Type) {
+    public async processOrder(incoming: Orders, side: Side) {
         // create new order in db
         sendToWorker(this.redis_dumper, {
             reason: "CREATE_ORDER" as worker_reason_type,
@@ -194,7 +194,7 @@ export class OrderBook {
             await this.executeTrade(incoming, value);
         }
 
-        if (incoming.status == "open") {
+        if (incoming.status != "cancelled") {
             if (!this[side].has(incoming.price)) {
                 this[side].set(incoming.price, {
                     price: incoming.price,

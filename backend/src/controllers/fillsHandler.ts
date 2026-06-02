@@ -1,11 +1,9 @@
 import type { Request, Response } from "express";
 import { prisma } from "../..";
 
-export async function fillsHandler(req:Request, res:Response)
-{
+export async function fillsHandler(req: Request, res: Response) {
     let market = req.params.symbol as string || undefined;
-    if (!market)
-    {
+    if (!market) {
         return res.status(400).json({
             success: false,
             error: "Market required"
@@ -13,15 +11,14 @@ export async function fillsHandler(req:Request, res:Response)
     }
 
     market = market.slice(0, 3);
-    
+
     let asset = await prisma.stock.findUnique({
         where: {
             symbol: market
         }
     });
-    
-    if(!asset)
-    {
+
+    if (!asset) {
         return res.status(400).json({
             success: false,
             error: "Asset Unsupported"
@@ -30,7 +27,7 @@ export async function fillsHandler(req:Request, res:Response)
 
     let fills = await prisma.fills.findMany({
         where: {
-            market: market
+            asset: market
         },
         orderBy: {
             createdAt: "desc"

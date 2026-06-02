@@ -3,8 +3,9 @@ import { OrderBook } from "./class/Orderbook"
 import { cancelOrder } from "./helpers/cancelOrder";
 import { getAllWallet, getWallet } from "./helpers/getWallet";
 import { updateWalletDB } from "./helpers/updateWallet";
+import { EngineRequestSchema } from "./models/EngineReceivedReq";
 
-import type { AssetBalance, Balances, Currency, EngineRequest, Orders, UserBalances } from "./types/types";
+import type { AssetBalance, Balances, Currency, Orders, UserBalances } from "./types/types";
 
 export const STOCKS = [
     {
@@ -42,9 +43,21 @@ while (1) {
         continue;
     }
 
-    console.log("data: ", data)
+    let d = JSON.parse(data.element);
+    let result = EngineRequestSchema.safeParse(d);
+    if (!result.success) {
+        try {
+            responseClient.rPush(d.responseQueue, JSON.stringify({
+                id: d.id,
+                success: false,
+                error: "Invalid Schema"
+            }));
+        }
+        catch { }
+        continue;
+    }
 
-    let inside_data = JSON.parse(data.element) as EngineRequest;
+    let inside_data = result.data;
     console.log("inside data: ", inside_data);
 
     if (inside_data.type == "get_depth") {
@@ -85,8 +98,9 @@ while (1) {
     }
 
     // wallet has SOL USD but dont have BTC
-    if (wallet && !wallet[inside_data.order.asset as Currency]) {
+    if (inside_data.type != "cancel_order" && wallet && !wallet[inside_data.order.asset as Currency]) {
         // from db
+        console.log("Reached for calling wallet, ", inside_data);
         let data = await getWallet(inside_data.order.userId, inside_data.order.asset);
 
         if (!data) {
@@ -124,20 +138,12 @@ while (1) {
         continue;
     }
 
-    if (!map.get(inside_data.order.asset)) {
-        responseClient.rPush(inside_data.responseQueue, JSON.stringify({
-            id: inside_data.id,
-            success: false,
-            error: "Invalid Market"
-        }));
-        continue;
-    }
 
     if (inside_data.type == "cancel_order") {
         let orders = curr_Users.get(inside_data.order.userId);
-        let order = orders?.find(x => {
-            if (x.id == inside_data.order.orderId) return x;
-        })
+        let order = orders?.find(x => x.id === inside_data.order.orderId);
+
+        console.log("deleting ", inside_data.order.orderId, " array: ", orders);
 
         if (!order) {
             responseClient.rPush(inside_data.responseQueue, JSON.stringify({
@@ -153,6 +159,15 @@ while (1) {
                 id: inside_data.id,
                 success: false,
                 error: `Order already ${order.status}`
+            }));
+            continue;
+        }
+
+        if (!map.get(order.asset)) {
+            responseClient.rPush(inside_data.responseQueue, JSON.stringify({
+                id: inside_data.id,
+                success: false,
+                error: "Invalid Market"
             }));
             continue;
         }
@@ -190,6 +205,7 @@ while (1) {
         curr_Users.set(order.userId, []);
         curr_Users.get(order.userId)?.push(order);
     }
+    else curr_Users.get(order.userId)?.push(order);
 
     if ((order.side == "bids" && order.price * order.quantity > wallet["USD"]!.available) || (order.side == "asks" && order.quantity > wallet[order.asset]!.available)) {
         responseClient.rPush(inside_data.responseQueue, JSON.stringify({
@@ -200,9 +216,11 @@ while (1) {
         continue;
     }
     let orderbook = map.get(order.asset)!;
+    console.log("order id: ", order, " came before placing order");
 
     orderbook.addOrder(order, order.side);
-    await orderbook.processOrder(order, order.side, order.type);
+    await orderbook.processOrder(order, order.side);
+    console.log("order id: ", order.id, " came after placing order, details ", orderbook.getDetails(order.id));
 
     responseClient.rPush(inside_data.responseQueue, JSON.stringify({
         id: inside_data.id,

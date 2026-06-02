@@ -1,41 +1,48 @@
 import { describe, expect, test } from "bun:test";
-import { e2eBaseUrl } from "./helpers";
+import { e2eBaseUrl, expectApiFailure, jsonBody } from "./helpers";
 
 /**
- * No database writes and no JWT — only needs backend + Redis.
- * Start: `cd backend && bun run src/server.ts` (with valid env including Redis).
+ * Public route smoke tests and auth boundary checks for every route mounted
+ * after app.use(auth) in backend/src/routes/routes.ts.
  */
-describe("CEX integration — smoke (live backend)", () => {
+describe("CEX integration - public routes and auth boundary", () => {
   const base = e2eBaseUrl();
 
   test("GET /health returns ok after Redis ping", async () => {
     const res = await fetch(`${base}/health`);
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { ok?: boolean };
-    expect(body.ok).toBe(true);
+
+    const body = await jsonBody(res);
+    expect(body).toEqual({ ok: true });
   });
 
-  test("GET /stocks is public (no Authorization header)", async () => {
+  test("GET /stocks is public and returns the backend stocks payload", async () => {
     const res = await fetch(`${base}/stocks`);
     expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body).toBeDefined();
+
+    const body = await jsonBody(res);
+    expect(body).toEqual({ STOCKS: "stocks" });
   });
 
-  test("POST /order without Authorization returns 401", async () => {
-    const res = await fetch(`${base}/order`, {
-      method: "POST",
+  test.each([
+    ["POST", "/order"],
+    ["DELETE", "/order/e2e-missing-order"],
+    ["GET", "/orders"],
+    ["GET", "/orderbook/ETH"],
+    ["GET", "/fills/ETH"],
+    ["GET", "/balance"],
+    ["POST", "/wallet/add"],
+    ["POST", "/wallet"],
+  ] as const)("%s %s without Authorization returns typed 401 failure", async (method, path) => {
+    const res = await fetch(`${base}${path}`, {
+      method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        side: "buy",
-        type: "limit",
-        symbol: "ETH",
-        price: 1,
-        quantity: 1,
-      }),
+      body: method === "GET" ? undefined : JSON.stringify({}),
     });
+
     expect(res.status).toBe(401);
-    const body = (await res.json()) as { success?: boolean };
-    expect(body.success).toBe(false);
+    const body = await jsonBody(res);
+    expectApiFailure(body);
+    expect((body as { error?: string }).error).toBe("User unauthorised");
   });
 });
